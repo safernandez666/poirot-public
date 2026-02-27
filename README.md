@@ -6,6 +6,12 @@ Automated detection of sensitive data (PII/PCI) across your data sources — MyS
 
 ---
 
+## Demo
+
+[![Watch the demo](https://cdn.loom.com/sessions/thumbnails/ae86d0bc3a9240679ba2f8a1a6b358de-with-play.gif)](https://www.loom.com/share/ae86d0bc3a9240679ba2f8a1a6b358de)
+
+---
+
 ## Screenshots
 
 | Dashboard | Alerts |
