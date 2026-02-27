@@ -6,6 +6,30 @@ Automated detection of sensitive data (PII/PCI) across your data sources — MyS
 
 ---
 
+## Screenshots
+
+| Dashboard | Alerts |
+|-----------|--------|
+| ![Dashboard](screenshots/Dashboard.jpg) | ![Alerts](screenshots/Alerts.jpg) |
+
+| Scans | Sources |
+|-------|---------|
+| ![Scans](screenshots/Scans.jpg) | ![Sources](screenshots/Sources.jpg) |
+
+| Cases (TheHive) | Reports |
+|-----------------|---------|
+| ![Cases](screenshots/Cases.jpg) | ![Reports](screenshots/Reports.jpg) |
+
+| Patterns | Settings |
+|----------|----------|
+| ![Patterns](screenshots/Patterns.jpg) | ![Settings](screenshots/Settings_1.jpg) |
+
+| Slack Alert | Email Alert |
+|-------------|-------------|
+| ![Slack](screenshots/Slack.jpg) | ![Email](screenshots/Correo.jpg) |
+
+---
+
 ## Quickstart
 
 ```bash
