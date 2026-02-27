@@ -40,6 +40,31 @@ docker compose --profile ollama up -d
 
 ---
 
+## TheHive setup
+
+After starting TheHive for the first time, run the setup script to create an organisation, an API user, and write the API key to your `.env`:
+
+```bash
+docker compose --profile thehive up -d   # start TheHive (takes ~2-3 min)
+
+chmod +x scripts/thehive_setup.sh
+./scripts/thehive_setup.sh               # creates org + user + API key → .env
+
+docker compose up -d                     # reload dashboard with the new key
+```
+
+The script uses the default TheHive admin credentials (`admin@thehive.local` / `secret`). Override them with environment variables if needed:
+
+```bash
+THEHIVE_ADMIN_USER=admin@thehive.local \
+THEHIVE_ADMIN_PASS=secret \
+./scripts/thehive_setup.sh
+```
+
+Once done, `THEHIVE_ENABLED=true` and `THEHIVE_API_KEY=<key>` are written to your `.env` automatically.
+
+---
+
 ## Configuration
 
 All settings live in `.env`. Copy `.env.example` and fill in your values:
