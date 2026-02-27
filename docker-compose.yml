@@ -3,7 +3,7 @@
 #
 # Usage:
 #   cp .env.example .env          # fill in your credentials
-#   docker compose -f docker-compose.ghcr.yml up -d
+#   docker compose up -d
 #   open http://localhost:8080
 #
 # Optional profiles:
@@ -89,7 +89,7 @@ services:
       start_period: 60s
 
   # ============================================================================
-  # OPTIONAL — TheHive  (docker compose -f docker-compose.ghcr.yml --profile thehive up -d)
+  # OPTIONAL — TheHive  (docker compose --profile thehive up -d)
   # ============================================================================
 
   cassandra:
@@ -144,7 +144,7 @@ services:
     ports:
       - "9000:9000"
     environment:
-      - JVM_OPTS=-Xms1G -Xmx1G
+      - JVM_OPTS=-Xms1G -Xmx1G -Dhttp.address=0.0.0.0 -Djava.net.preferIPv4Stack=true
     volumes:
       - thehive_data:/opt/thehive/data
       - ./thehive-config/application.conf:/etc/thehive/application.conf:ro
@@ -159,7 +159,7 @@ services:
       start_period: 180s
 
   # ============================================================================
-  # OPTIONAL — Ollama AI  (docker compose -f docker-compose.ghcr.yml --profile ollama up -d)
+  # OPTIONAL — Ollama AI  (docker compose --profile ollama up -d)
   # ============================================================================
 
   ollama:
