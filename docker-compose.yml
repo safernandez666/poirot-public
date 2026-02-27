@@ -1,0 +1,200 @@
+# =============================================================================
+# Poirot DSPM — Production compose (pre-built images from GHCR)
+#
+# Usage:
+#   cp .env.example .env          # fill in your credentials
+#   docker compose -f docker-compose.ghcr.yml up -d
+#   open http://localhost:8080
+#
+# Optional profiles:
+#   --profile thehive             # adds TheHive case management
+#   --profile ollama              # adds local AI for reports
+# =============================================================================
+
+services:
+
+  # Extracts default config files from the image on first run.
+  # Creates ./config/connection.yml and ./config/fingerprint.yml if they don't exist.
+  init:
+    image: ghcr.io/safernandez666/poirot-scanner:latest
+    container_name: poirot-init
+    platform: linux/amd64
+    user: root
+    volumes:
+      - ./config:/output
+    command: >
+      sh -c "
+        mkdir -p /output;
+        [ -f /output/connection.yml ] || cp /app/connection.yml /output/connection.yml;
+        [ -f /output/fingerprint.yml ] || cp /app/fingerprint.yml /output/fingerprint.yml;
+        echo 'Config ready.';
+      "
+    restart: "no"
+
+  scanner:
+    image: ghcr.io/safernandez666/poirot-scanner:latest
+    container_name: hawk-scanner
+    platform: linux/amd64
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    env_file: .env
+    environment:
+      - PYTHONIOENCODING=utf-8
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    volumes:
+      - ./config/connection.yml:/app/connection.yml
+      - ./config/fingerprint.yml:/app/fingerprint.yml
+      - poirot_data:/app/data
+    command: tail -f /dev/null
+    networks:
+      - poirot-network
+
+  dashboard:
+    image: ghcr.io/safernandez666/poirot-dashboard:latest
+    container_name: hawk-dashboard
+    platform: linux/amd64
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      scanner:
+        condition: service_started
+    ports:
+      - "8080:80"
+    env_file: .env
+    environment:
+      - ALERTS_DB_PATH=/app/data/alerts.db
+      - FINGERPRINT_PATH=/app/config/fingerprint.yml
+      - CONNECTION_PATH=/app/config/connection.yml
+      - FLASK_DEBUG=false
+    volumes:
+      - ./config/connection.yml:/app/config/connection.yml
+      - ./config/fingerprint.yml:/app/config/fingerprint.yml
+      - poirot_data:/app/data
+      - ./.env:/app/.env
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - poirot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================================================
+  # OPTIONAL — TheHive  (docker compose -f docker-compose.ghcr.yml --profile thehive up -d)
+  # ============================================================================
+
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra
+    profiles: ["thehive"]
+    environment:
+      - MAX_HEAP_SIZE=1G
+      - HEAP_NEWSIZE=256M
+      - CASSANDRA_CLUSTER_NAME=thehive
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    networks:
+      - poirot-network
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+    container_name: elasticsearch
+    profiles: ["thehive"]
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - cluster.name=thehive
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - poirot-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  thehive:
+    image: strangebee/thehive:5.0
+    platform: linux/amd64
+    container_name: thehive
+    profiles: ["thehive"]
+    depends_on:
+      cassandra:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    environment:
+      - JVM_OPTS=-Xms1G -Xmx1G
+    volumes:
+      - thehive_data:/opt/thehive/data
+      - ./thehive-config/application.conf:/etc/thehive/application.conf:ro
+    networks:
+      - poirot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:9000/api/v1/status | grep -qE '200|401'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+
+  # ============================================================================
+  # OPTIONAL — Ollama AI  (docker compose -f docker-compose.ghcr.yml --profile ollama up -d)
+  # ============================================================================
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_ORIGINS=*
+    networks:
+      - poirot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    entrypoint: >
+      sh -c "
+        /bin/ollama serve &
+        sleep 5
+        ollama pull llama3.2:3b
+        wait
+      "
+
+networks:
+  poirot-network:
+    driver: bridge
+
+volumes:
+  poirot_data:
+  cassandra_data:
+  elasticsearch_data:
+  thehive_data:
+  ollama_data:
