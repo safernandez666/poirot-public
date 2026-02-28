@@ -1,85 +1,58 @@
-# =============================================================================
-# Poirot DSPM — Production compose (pre-built images from GHCR)
-#
-# Usage:
-#   cp .env.example .env          # fill in your credentials
-#   docker compose up -d
-#   open http://localhost:8080
-#
-# Optional profiles:
-#   --profile thehive             # adds TheHive case management
-#   --profile ollama              # adds local AI for reports
-# =============================================================================
-
 services:
 
-  # Extracts default config files from the image on first run.
-  # Creates ./config/connection.yml and ./config/fingerprint.yml if they don't exist.
-  init:
-    image: ghcr.io/safernandez666/poirot-scanner:latest
-    container_name: poirot-init
-    platform: linux/amd64
-    user: root
-    volumes:
-      - ./config:/output
-    command: >
-      sh -c "
-        mkdir -p /output;
-        [ -f /output/connection.yml ] || cp /app/connection.yml /output/connection.yml;
-        [ -f /output/fingerprint.yml ] || cp /app/fingerprint.yml /output/fingerprint.yml;
-        echo 'Config ready.';
-      "
-    restart: "no"
+  # ============================================================================
+  # CORE — always started (docker compose up -d)
+  # ============================================================================
 
-  scanner:
-    image: ghcr.io/safernandez666/poirot-scanner:latest
+  hawk-scanner:
+    build: .
     container_name: hawk-scanner
     platform: linux/amd64
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    depends_on:
-      init:
-        condition: service_completed_successfully
     env_file: .env
     environment:
       - PYTHONIOENCODING=utf-8
       - LANG=C.UTF-8
       - LC_ALL=C.UTF-8
     volumes:
-      - ./config/connection.yml:/app/connection.yml
-      - ./config/fingerprint.yml:/app/fingerprint.yml
-      - poirot_data:/app/data
+      - ./hawk-scanner/connection.yml:/app/connection.yml
+      - ./hawk-scanner/fingerprint.yml:/app/fingerprint.yml
+      - ./hawk-scanner/notification_manager.py:/app/notification_manager.py
+      - ./hawk-scanner/data:/app/data
     command: tail -f /dev/null
     networks:
-      - poirot-network
+      - hawk-network
 
   dashboard:
-    image: ghcr.io/safernandez666/poirot-dashboard:latest
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
     container_name: hawk-dashboard
-    platform: linux/amd64
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      init:
-        condition: service_completed_successfully
-      scanner:
+      hawk-scanner:
         condition: service_started
     ports:
       - "8080:80"
-    env_file: .env
     environment:
       - ALERTS_DB_PATH=/app/data/alerts.db
       - FINGERPRINT_PATH=/app/config/fingerprint.yml
       - CONNECTION_PATH=/app/config/connection.yml
       - FLASK_DEBUG=false
+      - THEHIVE_ENABLED=${THEHIVE_ENABLED:-false}
+      - THEHIVE_URL=http://thehive:9000
+      - THEHIVE_API_KEY=${THEHIVE_API_KEY:-}
     volumes:
-      - ./config/connection.yml:/app/config/connection.yml
-      - ./config/fingerprint.yml:/app/config/fingerprint.yml
-      - poirot_data:/app/data
+      - ./hawk-scanner/data:/app/data
+      - ./hawk-scanner/fingerprint.yml:/app/config/fingerprint.yml
+      - ./hawk-scanner/connection.yml:/app/config/connection.yml
+      - ./hawk-scanner/notification_manager.py:/app/notification_manager.py
       - ./.env:/app/.env
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - poirot-network
+      - hawk-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost/api/health"]
@@ -89,7 +62,108 @@ services:
       start_period: 60s
 
   # ============================================================================
-  # OPTIONAL — TheHive  (docker compose --profile thehive up -d)
+  # DEMO — started with: docker compose --profile demo up -d
+  # Includes sample data sources (MySQL, S3, Kafka) + automatic data seeding
+  # ============================================================================
+
+  hawk-mysql:
+    image: mysql:8.0
+    container_name: hawk-mysql
+    profiles: ["demo"]
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: pocdb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hawk-network
+
+  localstack:
+    image: localstack/localstack:2.2
+    container_name: localstack
+    profiles: ["demo"]
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-1
+      - DEBUG=1
+    ports:
+      - "4566:4566"
+    volumes:
+      - "./localstack_data:/tmp/localstack"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hawk-network
+
+  redpanda:
+    image: redpandadata/redpanda:v23.3.21
+    container_name: redpanda
+    profiles: ["demo"]
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "1"
+      - --memory
+      - 512M
+      - --mode
+      - dev-container
+      - --default-log-level=warn
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "19092:19092"
+    networks:
+      - hawk-network
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster info --brokers localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  demo-setup:
+    build: .
+    container_name: demo-setup
+    profiles: ["demo"]
+    platform: linux/amd64
+    depends_on:
+      hawk-mysql:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      - MYSQL_HOST=hawk-mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=rootpassword
+      - MYSQL_DATABASE=pocdb
+      - S3_ENDPOINT=http://localstack:4566
+      - S3_BUCKET=poc-bucket
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+    volumes:
+      - ./scripts/demo_setup.py:/app/demo_setup.py
+    command: python /app/demo_setup.py
+    restart: "no"
+    networks:
+      - hawk-network
+
+  # ============================================================================
+  # OPTIONAL — TheHive (docker compose --profile thehive up -d)
   # ============================================================================
 
   cassandra:
@@ -103,7 +177,7 @@ services:
     volumes:
       - cassandra_data:/var/lib/cassandra
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
       interval: 30s
@@ -123,7 +197,7 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
@@ -149,9 +223,10 @@ services:
       - thehive_data:/opt/thehive/data
       - ./thehive-config/application.conf:/etc/thehive/application.conf:ro
     networks:
-      - poirot-network
+      - hawk-network
     restart: unless-stopped
     healthcheck:
+      # TheHive /api/v1/status returns 401 without auth — that still means the server is up
       test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:9000/api/v1/status | grep -qE '200|401'"]
       interval: 30s
       timeout: 10s
@@ -159,7 +234,7 @@ services:
       start_period: 180s
 
   # ============================================================================
-  # OPTIONAL — Ollama AI  (docker compose --profile ollama up -d)
+  # OPTIONAL — Ollama AI (docker compose --profile ollama up -d)
   # ============================================================================
 
   ollama:
@@ -173,7 +248,7 @@ services:
     environment:
       - OLLAMA_ORIGINS=*
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
       interval: 30s
@@ -184,17 +259,20 @@ services:
       sh -c "
         /bin/ollama serve &
         sleep 5
+        echo 'Downloading llama3.2:3b...'
         ollama pull llama3.2:3b
+        echo 'Model ready'
         wait
       "
 
 networks:
-  poirot-network:
+  hawk-network:
     driver: bridge
 
 volumes:
-  poirot_data:
+  mysql_data:
   cassandra_data:
   elasticsearch_data:
   thehive_data:
+  hawk-data:
   ollama_data:
