@@ -15,13 +15,13 @@ resources:
 configMapGenerator:
   - name: poirot-fingerprint
     files:
-      - fingerprint.yml=../hawk-scanner/fingerprint.yml
+      - fingerprint.yml=files/fingerprint.yml
   - name: poirot-connection-seed
     files:
-      - connection.yml=../hawk-scanner/connection.yml
+      - connection.yml=files/connection.yml
   - name: poirot-scripts
     files:
-      - notification_manager.py=../hawk-scanner/notification_manager.py
+      - notification_manager.py=files/notification_manager.py
 
 generatorOptions:
   disableNameSuffixHash: true
