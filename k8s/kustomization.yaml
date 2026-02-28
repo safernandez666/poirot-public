@@ -9,6 +9,7 @@ resources:
   - 02-pvc.yaml
   - 03-hawk-scanner.yaml
   - 04-dashboard.yaml
+  - 05-rbac.yaml
 
 # Generates ConfigMaps directly from the source files in this repo.
 # Run:  kubectl apply -k k8s/

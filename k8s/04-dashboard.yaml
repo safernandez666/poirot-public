@@ -6,14 +6,12 @@
 #   back in the Secret.  For permanent changes, update 01-secret.yaml and
 #   run:  kubectl rollout restart deployment/hawk-scanner deployment/dashboard
 #
-# • The dashboard triggers scans via `docker exec hawk-scanner ...` using the
-#   Docker socket (hostPath).  This works on single-node clusters (k3s, k0s,
-#   Docker Desktop).  For multi-node or CRI-O / containerd-only setups the scan
-#   trigger must be adapted to use `kubectl exec` instead.
+# • Scan triggering: the dashboard uses `kubectl exec` via the in-cluster
+#   Kubernetes API (ServiceAccount poirot-scanner-sa with exec permissions).
+#   The docker socket is NOT used in K8s mode.
 #
 # • Both hawk-scanner and dashboard mount the same PVCs (ReadWriteOnce).
-#   They must be scheduled on the same node.  Use podAffinity or a single-node
-#   cluster, or switch PVCs to ReadWriteMany (NFS/Longhorn).
+#   podAffinity ensures they land on the same node.
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,6 +30,7 @@ spec:
       labels:
         app: dashboard
     spec:
+      serviceAccountName: poirot-dashboard-sa
       # Co-locate with hawk-scanner so both pods share the same RWO PVCs.
       # Required when using ReadWriteOnce storage on a multi-node cluster.
       affinity:
@@ -104,10 +103,6 @@ spec:
             - name: scripts
               mountPath: /app/notification_manager.py
               subPath: notification_manager.py
-            # Docker socket — needed to trigger scans via `docker exec hawk-scanner`
-            # Remove if running on a containerd-only cluster (see note above)
-            - name: docker-sock
-              mountPath: /var/run/docker.sock
           livenessProbe:
             httpGet:
               path: /api/health
@@ -144,10 +139,6 @@ spec:
         - name: scripts
           configMap:
             name: poirot-scripts
-        - name: docker-sock
-          hostPath:
-            path: /var/run/docker.sock
-            type: Socket
 ---
 apiVersion: v1
 kind: Service
