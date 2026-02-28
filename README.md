@@ -2,7 +2,7 @@
 
 Automated detection of sensitive data (PII/PCI) across your data sources — MySQL, S3, Kafka, and more.
 
-**Dashboard** | Pattern management | Slack / Email / Teams / Webhook alerts | TheHive integration | AI-powered reports
+**Dashboard** | Pattern management | Slack / Email / Teams / Webhook alerts | TheHive integration | AI-powered reports | Built-in docs
 
 ---
 
@@ -66,6 +66,9 @@ docker compose --profile thehive up -d
 
 # Add local AI for reports (Ollama)
 docker compose --profile ollama up -d
+
+# Add demo data (MySQL, S3, Kafka/Redpanda with synthetic PII)
+docker compose --profile demo up -d
 ```
 
 ---
@@ -107,9 +110,11 @@ All settings live in `.env`. Copy `.env.example` and fill in your values:
 | **Webhook** | `WEBHOOK_ENABLED`, `WEBHOOK_URL` |
 | **TheHive** | `THEHIVE_ENABLED`, `THEHIVE_URL`, `THEHIVE_API_KEY` |
 | **Ollama AI** | `OLLAMA_ENABLED`, `OLLAMA_URL`, `OLLAMA_MODEL` |
-| **Data sources** | `SOURCE_MYSQL_NAME={"host":"..."}`, `SOURCE_S3_NAME={"bucket":"..."}` |
+| **Data sources** | `SOURCE_MYSQL_NAME={"host":"..."}`, `SOURCE_S3_NAME={"bucket":"..."}`, `SOURCE_KAFKA_NAME={"bootstrap_servers":"..."}` |
 
-Data sources can also be added and managed from the dashboard UI at `http://localhost:8080/sources`.
+Data sources can be added and managed from the dashboard UI at `http://localhost:8080/sources`.
+
+For full configuration docs including IAM auth (S3, MSK), SASL/SCRAM, and per-source field reference, open `http://localhost:8080/docs` after starting the stack.
 
 ---
 
