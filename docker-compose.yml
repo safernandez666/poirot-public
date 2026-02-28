@@ -62,8 +62,56 @@ services:
       start_period: 60s
 
   # ============================================================================
+  # KAFKA — always started (Redpanda, Kafka-compatible, no ZooKeeper)
+  # ============================================================================
+
+  redpanda:
+    image: redpandadata/redpanda:v23.3.21
+    container_name: redpanda
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "1"
+      - --memory
+      - 512M
+      - --mode
+      - dev-container
+      - --default-log-level=warn
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+    ports:
+      - "19092:19092"
+    networks:
+      - hawk-network
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster info --brokers localhost:9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  kafka-setup:
+    build: .
+    container_name: kafka-setup
+    platform: linux/amd64
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+    volumes:
+      - ./hawk-scanner/kafka_demo_producer.py:/app/kafka_demo_producer.py
+    command: python /app/kafka_demo_producer.py
+    restart: "no"
+    networks:
+      - hawk-network
+
+  # ============================================================================
   # DEMO — started with: docker compose --profile demo up -d
-  # Includes sample data sources (MySQL, S3, Kafka) + automatic data seeding
+  # Includes sample data sources (MySQL, S3) + automatic data seeding
   # ============================================================================
 
   hawk-mysql:
@@ -105,35 +153,6 @@ services:
     networks:
       - hawk-network
 
-  redpanda:
-    image: redpandadata/redpanda:v23.3.21
-    container_name: redpanda
-    profiles: ["demo"]
-    command:
-      - redpanda
-      - start
-      - --smp
-      - "1"
-      - --memory
-      - 512M
-      - --mode
-      - dev-container
-      - --default-log-level=warn
-      - --kafka-addr
-      - internal://0.0.0.0:9092,external://0.0.0.0:19092
-      - --advertise-kafka-addr
-      - internal://redpanda:9092,external://localhost:19092
-    ports:
-      - "19092:19092"
-    networks:
-      - hawk-network
-    healthcheck:
-      test: ["CMD-SHELL", "rpk cluster info --brokers localhost:9092 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
   demo-setup:
     build: .
     container_name: demo-setup
@@ -144,8 +163,6 @@ services:
         condition: service_healthy
       localstack:
         condition: service_healthy
-      redpanda:
-        condition: service_healthy
     environment:
       - MYSQL_HOST=hawk-mysql
       - MYSQL_PORT=3306
@@ -154,7 +171,6 @@ services:
       - MYSQL_DATABASE=pocdb
       - S3_ENDPOINT=http://localstack:4566
       - S3_BUCKET=poc-bucket
-      - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
     volumes:
       - ./scripts/demo_setup.py:/app/demo_setup.py
     command: python /app/demo_setup.py
