@@ -32,83 +32,104 @@ Automated detection of sensitive data (PII/PCI) across your data sources — MyS
 
 ## Quickstart
 
+There are two ways to run Poirot: **connect your own data sources** or **try the demo** with pre-loaded synthetic data.
+
+### Option A — Connect your own data sources
+
+Use this when you already have databases, S3 buckets, or Kafka clusters you want to scan.
+
 ```bash
-# 1. Clone this repo
 git clone https://github.com/safernandez666/poirot-public.git
 cd poirot-public
 
-# 2. Configure your environment
 cp .env.example .env
-# Edit .env with your credentials and data sources
+# Edit .env — add your real data sources (MySQL, Oracle, S3, Kafka)
 
-# 3. Start
 docker compose up -d
-
-# 4. Open
 open http://localhost:8080
 ```
+
+This starts **only Poirot** (scanner + dashboard). You configure your data sources in `.env` or from the UI at `/sources`.
+
+### Option B — Try the demo (no configuration needed)
+
+Use this to explore Poirot with synthetic data. It starts MySQL, S3 (LocalStack), and Kafka (Redpanda) containers pre-loaded with fake PII (credit cards, SSNs, AWS keys, etc.) ready to scan.
+
+```bash
+git clone https://github.com/safernandez666/poirot-public.git
+cd poirot-public
+
+cp .env.example .env    # works out of the box, no edits needed
+
+docker compose --profile demo up -d
+open http://localhost:8080
+```
+
+The demo profile adds:
+
+| Service | Description | Port |
+|---------|-------------|------|
+| **hawk-mysql** | MySQL 8.0 with 4 tables of synthetic PII (customers, payments, users, servers) | 3306 |
+| **localstack** | S3-compatible storage with JSON files containing fake credentials and PII | 4566 |
+| **redpanda** | Kafka-compatible broker with 3 topics of sensitive messages | 19092 |
+| **demo-setup** | Seeds all the above with ~200 records of synthetic data, then exits | — |
+
+Once everything is up, go to the dashboard and run a scan — you'll see alerts for credit cards, SSNs, AWS keys, and more.
 
 > Images are pulled automatically from GitHub Container Registry — no build required.
 
 ---
 
-## Optional profiles
+## What gets started
 
-```bash
-# Add TheHive case management
-docker compose --profile thehive up -d
+### `docker compose up -d` (core only)
 
-# Add local AI for reports (Ollama)
-docker compose --profile ollama up -d
+| Container | Image | Description |
+|-----------|-------|-------------|
+| `poirot-init` | `ghcr.io/safernandez666/poirot-scanner` | Extracts default config files on first run, then exits |
+| `hawk-scanner` | `ghcr.io/safernandez666/poirot-scanner` | The scanning engine |
+| `hawk-dashboard` | `ghcr.io/safernandez666/poirot-dashboard` | Web UI + API on port **8080** |
 
-# Add demo data (MySQL, S3, Kafka/Redpanda with synthetic PII)
-docker compose --profile demo up -d
-```
+### `docker compose --profile demo up -d` (core + demo data)
 
----
-
-## TheHive setup
-
-After starting TheHive for the first time, run the setup script to create an organisation, an API user, and write the API key to your `.env`:
-
-```bash
-docker compose --profile thehive up -d   # start TheHive (takes ~2-3 min)
-
-chmod +x scripts/thehive_setup.sh
-./scripts/thehive_setup.sh               # creates org + user + API key → .env
-
-docker compose up -d                     # reload dashboard with the new key
-```
-
-The script uses the default TheHive admin credentials (`admin@thehive.local` / `secret`). Override them with environment variables if needed:
-
-```bash
-THEHIVE_ADMIN_USER=admin@thehive.local \
-THEHIVE_ADMIN_PASS=secret \
-./scripts/thehive_setup.sh
-```
-
-Once done, `THEHIVE_ENABLED=true` and `THEHIVE_API_KEY=<key>` are written to your `.env` automatically.
+Everything above, plus MySQL, LocalStack (S3), Redpanda (Kafka), and the demo seeder.
 
 ---
 
 ## Configuration
 
-All settings live in `.env`. Copy `.env.example` and fill in your values:
+All settings live in `.env`. Copy `.env.example` and fill in your values.
 
-| Section | Variables |
-|---|---|
+### Notification channels
+
+| Channel | Key variables |
+|---------|---------------|
 | **Slack** | `SLACK_ENABLED`, `SLACK_WEBHOOK_URL` |
-| **Email** | `SMTP_ENABLED`, `SMTP_HOST`, `SMTP_USERNAME`, ... |
+| **Email** | `SMTP_ENABLED`, `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_TO_ADDRESSES` |
 | **Teams** | `TEAMS_ENABLED`, `TEAMS_WEBHOOK_URL` |
 | **Webhook** | `WEBHOOK_ENABLED`, `WEBHOOK_URL` |
-| **TheHive** | `THEHIVE_ENABLED`, `THEHIVE_URL`, `THEHIVE_API_KEY` |
-| **Ollama AI** | `OLLAMA_ENABLED`, `OLLAMA_URL`, `OLLAMA_MODEL` |
-| **Data sources** | `SOURCE_MYSQL_NAME={"host":"..."}`, `SOURCE_ORACLE_NAME={"host":"...","service_name":"..."}`, `SOURCE_S3_NAME={"bucket":"..."}`, `SOURCE_KAFKA_NAME={"bootstrap_servers":"..."}` |
 
-Data sources can be added and managed from the dashboard UI at `http://localhost:8080/sources`.
+### Data sources
 
-For full configuration docs including IAM auth (S3, MSK), SASL/SCRAM, Oracle Thin mode, and per-source field reference, open `http://localhost:8080/docs` after starting the stack.
+Data sources are defined in `.env` with the format `SOURCE_{TYPE}_{NAME}={"field":"value",...}`:
+
+```bash
+# MySQL
+SOURCE_MYSQL_PRODUCTION={"host":"db.internal","port":3306,"user":"scanner","password":"s3cr3t","database":"app_db"}
+
+# Oracle
+SOURCE_ORACLE_PROD={"host":"oracle.internal","port":1521,"service_name":"ORCL","user":"scanner","password":"s3cr3t"}
+
+# S3
+SOURCE_S3_DATA_LAKE={"access_key":"AKIA...","secret_key":"...","bucket_name":"my-bucket","region":"us-east-1"}
+
+# Kafka
+SOURCE_KAFKA_EVENTS={"bootstrap_servers":"kafka:9092","topics":"orders,users","group_id":"poirot-scanner"}
+```
+
+Sources can also be added and managed from the dashboard UI at `/sources`.
+
+For full configuration docs including IAM auth (S3, MSK), SASL/SCRAM, and Oracle Thin mode, open `/docs` in the dashboard after starting the stack.
 
 ---
 
