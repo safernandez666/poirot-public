@@ -32,6 +32,15 @@ spec:
       labels:
         app: dashboard
     spec:
+      # Co-locate with hawk-scanner so both pods share the same RWO PVCs.
+      # Required when using ReadWriteOnce storage on a multi-node cluster.
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: hawk-scanner
+              topologyKey: kubernetes.io/hostname
       initContainers:
         - name: init-config
           image: busybox:1.36
