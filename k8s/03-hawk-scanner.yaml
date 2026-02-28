@@ -28,11 +28,13 @@ spec:
                 echo "Seeding connection.yml..."
                 cp /seed/connection.yml /config/connection.yml
               fi
-              # Build .env from Secret env vars so python-dotenv can read them
-              echo "Writing .env..."
-              env | grep -E "^(SLACK_|SMTP_|THEHIVE_|OLLAMA_|SOURCE_)" \
-                | awk -F= 'BEGIN{OFS="="} {val=substr($0,index($0,"=")+1); print $1, val}' \
-                > /config/.env
+              # Seed .env on first run only — preserves sources added via the UI
+              if [ ! -f /config/.env ]; then
+                echo "Seeding .env..."
+                env | grep -E "^(SLACK_|SMTP_|THEHIVE_|OLLAMA_|SOURCE_)" \
+                  | awk -F= 'BEGIN{OFS="="} {val=substr($0,index($0,"=")+1); print $1, val}' \
+                  > /config/.env
+              fi
           envFrom:
             - secretRef:
                 name: poirot-secret
