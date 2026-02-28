@@ -60,6 +60,9 @@ services:
     image: ghcr.io/safernandez666/poirot-dashboard:latest
     container_name: hawk-dashboard
     platform: linux/amd64
+    security_opt:
+      - no-new-privileges:false
+      - seccomp:unconfined
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
