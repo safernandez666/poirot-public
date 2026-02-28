@@ -23,6 +23,7 @@ services:
         mkdir -p /output;
         [ -f /output/connection.yml ] || cp /app/connection.yml /output/connection.yml;
         [ -f /output/fingerprint.yml ] || cp /app/fingerprint.yml /output/fingerprint.yml;
+        [ -f /output/.env ] || touch /output/.env;
         echo 'Config ready.';
       "
     restart: "no"
@@ -40,7 +41,9 @@ services:
     depends_on:
       init:
         condition: service_completed_successfully
-    env_file: .env
+    env_file:
+      - path: ./config/.env
+        required: false
     environment:
       - PYTHONIOENCODING=utf-8
       - LANG=C.UTF-8
@@ -66,7 +69,9 @@ services:
         condition: service_started
     ports:
       - "8080:80"
-    env_file: .env
+    env_file:
+      - path: ./config/.env
+        required: false
     environment:
       - ALERTS_DB_PATH=/app/data/alerts.db
       - FINGERPRINT_PATH=/app/config/fingerprint.yml
@@ -76,7 +81,7 @@ services:
       - ./config/connection.yml:/app/config/connection.yml
       - ./config/fingerprint.yml:/app/config/fingerprint.yml
       - poirot_data:/app/data
-      - ./.env:/app/.env
+      - ./config/.env:/app/.env
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - poirot-network
