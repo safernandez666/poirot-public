@@ -1,6 +1,6 @@
 # Poirot DSPM
 
-Automated detection of sensitive data (PII/PCI) across your data sources — MySQL, S3, Kafka, and more.
+Automated detection of sensitive data (PII/PCI) across your data sources — MySQL, Oracle, S3, Kafka, and more.
 
 **Dashboard** | Pattern management | Slack / Email / Teams / Webhook alerts | TheHive integration | AI-powered reports | Built-in docs
 
@@ -110,11 +110,11 @@ All settings live in `.env`. Copy `.env.example` and fill in your values:
 | **Webhook** | `WEBHOOK_ENABLED`, `WEBHOOK_URL` |
 | **TheHive** | `THEHIVE_ENABLED`, `THEHIVE_URL`, `THEHIVE_API_KEY` |
 | **Ollama AI** | `OLLAMA_ENABLED`, `OLLAMA_URL`, `OLLAMA_MODEL` |
-| **Data sources** | `SOURCE_MYSQL_NAME={"host":"..."}`, `SOURCE_S3_NAME={"bucket":"..."}`, `SOURCE_KAFKA_NAME={"bootstrap_servers":"..."}` |
+| **Data sources** | `SOURCE_MYSQL_NAME={"host":"..."}`, `SOURCE_ORACLE_NAME={"host":"...","service_name":"..."}`, `SOURCE_S3_NAME={"bucket":"..."}`, `SOURCE_KAFKA_NAME={"bootstrap_servers":"..."}` |
 
 Data sources can be added and managed from the dashboard UI at `http://localhost:8080/sources`.
 
-For full configuration docs including IAM auth (S3, MSK), SASL/SCRAM, and per-source field reference, open `http://localhost:8080/docs` after starting the stack.
+For full configuration docs including IAM auth (S3, MSK), SASL/SCRAM, Oracle Thin mode, and per-source field reference, open `http://localhost:8080/docs` after starting the stack.
 
 ---
 
