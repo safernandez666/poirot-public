@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "poirot.fullname" . }}-dashboard
+  namespace: {{ .Values.namespace.name }}
+  labels: {{ include "poirot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{ include "poirot.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: dashboard
+  template:
+    metadata:
+      labels: {{ include "poirot.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: dashboard
+    spec:
+      initContainers:
+        {{- include "poirot.initConfig" . | nindent 8 }}
+      containers:
+        - name: dashboard
+          image: "{{ .Values.dashboard.image.repository }}:{{ .Values.dashboard.image.tag }}"
+          imagePullPolicy: {{ .Values.dashboard.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: ALERTS_DB_PATH
+              value: /app/data/alerts.db
+            - name: FINGERPRINT_PATH
+              value: /app/config/fingerprint.yml
+            - name: CONNECTION_PATH
+              value: /app/config/connection.yml
+            - name: FLASK_DEBUG
+              value: "false"
+          envFrom:
+            - secretRef:
+                name: {{ include "poirot.fullname" . }}-secret
+          volumeMounts:
+            - name: poirot-data
+              mountPath: /app/data
+            - name: poirot-config
+              mountPath: /app/config/connection.yml
+              subPath: connection.yml
+            - name: poirot-config
+              mountPath: /app/.env
+              subPath: .env
+            - name: fingerprint
+              mountPath: /app/config/fingerprint.yml
+              subPath: fingerprint.yml
+            - name: scripts
+              mountPath: /app/notification_manager.py
+              subPath: notification_manager.py
+            {{- if .Values.dockerSocket.enabled }}
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources: {{ toYaml .Values.dashboard.resources | nindent 12 }}
+      volumes:
+        - name: poirot-data
+          persistentVolumeClaim:
+            claimName: {{ include "poirot.fullname" . }}-data
+        - name: poirot-config
+          persistentVolumeClaim:
+            claimName: {{ include "poirot.fullname" . }}-config
+        - name: connection-seed
+          configMap:
+            name: {{ include "poirot.fullname" . }}-connection-seed
+        - name: fingerprint
+          configMap:
+            name: {{ include "poirot.fullname" . }}-fingerprint
+        - name: scripts
+          configMap:
+            name: {{ include "poirot.fullname" . }}-scripts
+        {{- if .Values.dockerSocket.enabled }}
+        - name: docker-sock
+          hostPath:
+            path: {{ .Values.dockerSocket.path }}
+            type: Socket
+        {{- end }}

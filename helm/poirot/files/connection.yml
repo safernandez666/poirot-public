@@ -1,0 +1,68 @@
+notify:
+  redacted: true
+  suppress_duplicates: true
+  ollama:
+    enabled: ${OLLAMA_ENABLED:-false}
+    url: ${OLLAMA_URL:-http://host.docker.internal:11434}
+    model: ${OLLAMA_MODEL:-llama3.1:latest}
+  channels:
+    smtp:
+      enabled: ${SMTP_ENABLED:-false}
+      severity_filter:
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+      host: ${SMTP_HOST:-smtp.gmail.com}
+      port: ${SMTP_PORT:-587}
+      use_tls: ${SMTP_USE_TLS:-true}
+      username: ${SMTP_USERNAME:-}
+      password: ${SMTP_PASSWORD:-}
+      from_address: ${SMTP_FROM_ADDRESS:-}
+      from_name: ${SMTP_FROM_NAME:-Poirot Security}
+      to_addresses: ${SMTP_TO_ADDRESSES:-}
+    slack:
+      enabled: ${SLACK_ENABLED:-false}
+      severity_filter:
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+      webhook_url: ${SLACK_WEBHOOK_URL:-}
+    teams:
+      enabled: ${TEAMS_ENABLED:-false}
+      webhook_url: ${TEAMS_WEBHOOK_URL:-}
+      severity_filter:
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+    webhook:
+      enabled: ${WEBHOOK_ENABLED:-false}
+      url: ${WEBHOOK_URL:-}
+      method: ${WEBHOOK_METHOD:-POST}
+      headers:
+        Content-Type: application/json
+      severity_filter:
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+    thehive:
+      enabled: ${THEHIVE_ENABLED:-false}
+      severity_filter:
+      - CRITICAL
+      - HIGH
+      - MEDIUM
+      - LOW
+      url: ${THEHIVE_URL:-http://thehive:9000}
+      api_key: ${THEHIVE_API_KEY:-}
+      create_cases: ${THEHIVE_CREATE_CASES:-true}
+scheduler:
+  enabled: true
+  schedule_type: interval
+  sources:
+  - mysql
+  - s3
+  interval_hours: 12.0
+sources: {}
+scheduler_jobs: []

@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "poirot.fullname" . }}-fingerprint
+  namespace: {{ .Values.namespace.name }}
+  labels: {{ include "poirot.labels" . | nindent 4 }}
+data:
+  fingerprint.yml: |-
+{{ .Files.Get "files/fingerprint.yml" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "poirot.fullname" . }}-connection-seed
+  namespace: {{ .Values.namespace.name }}
+  labels: {{ include "poirot.labels" . | nindent 4 }}
+data:
+  connection.yml: |-
+{{ .Files.Get "files/connection.yml" | indent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "poirot.fullname" . }}-scripts
+  namespace: {{ .Values.namespace.name }}
+  labels: {{ include "poirot.labels" . | nindent 4 }}
+data:
+  notification_manager.py: |-
+{{ .Files.Get "files/notification_manager.py" | indent 4 }}

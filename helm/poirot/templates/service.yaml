@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "poirot.fullname" . }}-dashboard
+  namespace: {{ .Values.namespace.name }}
+  labels: {{ include "poirot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+spec:
+  selector: {{ include "poirot.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+  type: {{ .Values.dashboard.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.dashboard.service.port }}
+      targetPort: http
+      {{- if and (eq .Values.dashboard.service.type "NodePort") .Values.dashboard.service.nodePort }}
+      nodePort: {{ .Values.dashboard.service.nodePort }}
+      {{- end }}

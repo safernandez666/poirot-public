@@ -1,0 +1,139 @@
+nameOverride: ""
+fullnameOverride: ""
+
+namespace:
+  create: true
+  name: poirot
+
+# ── Images ────────────────────────────────────────────────────────────────────
+scanner:
+  image:
+    repository: ghcr.io/safernandez666/poirot-scanner
+    tag: latest
+    pullPolicy: Always
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+dashboard:
+  image:
+    repository: ghcr.io/safernandez666/poirot-dashboard
+    tag: latest
+    pullPolicy: Always
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080   # only used when type=NodePort
+
+# ── Ingress ───────────────────────────────────────────────────────────────────
+ingress:
+  enabled: false
+  className: "nginx"
+  host: poirot.example.com
+  tls:
+    enabled: false
+    secretName: ""
+
+# ── Persistence ───────────────────────────────────────────────────────────────
+# ⚠  ReadWriteOnce requires both pods on the same node.
+#    For multi-node clusters set accessMode: ReadWriteMany and use an RWX StorageClass.
+persistence:
+  data:
+    size: 2Gi
+    storageClassName: ""    # leave empty to use cluster default
+    accessMode: ReadWriteOnce
+  config:
+    size: 256Mi
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+
+# ── Docker socket ─────────────────────────────────────────────────────────────
+# Required to trigger scans via `docker exec hawk-scanner`.
+# Disable on containerd-only clusters (CRI-O, K3s without Docker) and adapt
+# the scan trigger mechanism accordingly.
+dockerSocket:
+  enabled: true
+  path: /var/run/docker.sock
+
+# ── Notifications ─────────────────────────────────────────────────────────────
+slack:
+  enabled: false
+  webhookUrl: ""
+
+smtp:
+  enabled: false
+  host: "smtp.gmail.com"
+  port: "587"
+  useTls: "true"
+  username: ""
+  password: ""
+  fromAddress: ""
+  fromName: "Poirot Security"
+  toAddresses: ""
+  emailTheme: "dark_cyber"
+
+thehive:
+  enabled: false
+  url: "http://thehive:9000"
+  apiKey: ""
+
+ollama:
+  enabled: false
+  url: "http://ollama:11434"
+  model: "llama3.2:3b"
+
+# ── Data Sources ──────────────────────────────────────────────────────────────
+# Each entry generates a SOURCE_<TYPE>_<NAME> environment variable.
+# The key structure is:  sources.<type>.<name>: { ...config }
+#
+# Examples:
+#
+# sources:
+#   mysql:
+#     prod:
+#       host: db.example.com
+#       port: 3306
+#       user: scanner
+#       password: secret
+#       database: prod
+#   s3:
+#     main:
+#       access_key: "AKIA..."
+#       secret_key: "..."
+#       bucket_name: my-bucket
+#       region: us-east-1
+#   kafka:
+#     events:
+#       bootstrap_servers: kafka.example.com:9092
+#       topics: transactions,logs
+#       max_messages: "1000"
+#       group_id: poirot-scanner
+#   oracle:
+#     dw:
+#       host: oracle.example.com
+#       port: 1521
+#       user: scanner
+#       password: secret
+#       service_name: ORCLPDB1
+#   gdrive:
+#     shared:
+#       credentials_json: /secrets/gdrive.json
+#       folder_id: "1AbC..."
+#   onedrive:
+#     corp:
+#       tenant_id: "..."
+#       client_id: "..."
+#       client_secret: "..."
+#       drive_id: "..."
+sources: {}

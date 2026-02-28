@@ -1,0 +1,16 @@
+apiVersion: v2
+name: poirot
+description: Poirot — Data Security Posture Management (DSPM) platform
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - dspm
+  - security
+  - data-security
+  - scanner
+home: https://github.com/safernandez666/poirot-public
+sources:
+  - https://github.com/safernandez666/poirot-public
+maintainers:
+  - name: safernandez666

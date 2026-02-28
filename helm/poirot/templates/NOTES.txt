@@ -1,0 +1,51 @@
+Poirot DSPM has been deployed successfully!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ACCESS THE DASHBOARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+{{- if .Values.ingress.enabled }}
+  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}
+
+{{- else if eq .Values.dashboard.service.type "NodePort" }}
+  Get your node IP and open:
+  http://<NODE-IP>:{{ .Values.dashboard.service.nodePort }}
+
+  To find a node IP:
+    kubectl get nodes -o wide -n {{ .Values.namespace.name }}
+
+{{- else }}
+  Forward the port locally:
+    kubectl port-forward svc/{{ include "poirot.fullname" . }}-dashboard 8080:80 -n {{ .Values.namespace.name }}
+  Then open: http://localhost:8080
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ ADDING DATA SOURCES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Option A — from the UI:  navigate to /sources in the dashboard.
+
+  Option B — via Helm values (sources persist across upgrades):
+
+    sources:
+      mysql:
+        prod:
+          host: db.example.com
+          port: 3306
+          user: scanner
+          password: secret
+          database: prod
+
+    helm upgrade {{ .Release.Name }} ./helm/poirot -n {{ .Values.namespace.name }} -f my-values.yaml
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ USEFUL COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Logs:
+    kubectl logs -f deployment/{{ include "poirot.fullname" . }}-dashboard -n {{ .Values.namespace.name }}
+    kubectl logs -f deployment/{{ include "poirot.fullname" . }}-scanner   -n {{ .Values.namespace.name }}
+
+  Status:
+    kubectl get all -n {{ .Values.namespace.name }}

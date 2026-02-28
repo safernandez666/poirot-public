@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "poirot.fullname" . }}-scanner
+  namespace: {{ .Values.namespace.name }}
+  labels: {{ include "poirot.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scanner
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{ include "poirot.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: scanner
+  template:
+    metadata:
+      labels: {{ include "poirot.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: scanner
+    spec:
+      initContainers:
+        {{- include "poirot.initConfig" . | nindent 8 }}
+      containers:
+        - name: hawk-scanner
+          image: "{{ .Values.scanner.image.repository }}:{{ .Values.scanner.image.tag }}"
+          imagePullPolicy: {{ .Values.scanner.image.pullPolicy }}
+          command: ["tail", "-f", "/dev/null"]
+          env:
+            - name: PYTHONIOENCODING
+              value: "utf-8"
+            - name: LANG
+              value: "C.UTF-8"
+            - name: LC_ALL
+              value: "C.UTF-8"
+          envFrom:
+            - secretRef:
+                name: {{ include "poirot.fullname" . }}-secret
+          volumeMounts:
+            - name: poirot-config
+              mountPath: /app/connection.yml
+              subPath: connection.yml
+            - name: poirot-config
+              mountPath: /app/.env
+              subPath: .env
+            - name: fingerprint
+              mountPath: /app/fingerprint.yml
+              subPath: fingerprint.yml
+            - name: scripts
+              mountPath: /app/notification_manager.py
+              subPath: notification_manager.py
+            - name: poirot-data
+              mountPath: /app/data
+          resources: {{ toYaml .Values.scanner.resources | nindent 12 }}
+      volumes:
+        - name: poirot-data
+          persistentVolumeClaim:
+            claimName: {{ include "poirot.fullname" . }}-data
+        - name: poirot-config
+          persistentVolumeClaim:
+            claimName: {{ include "poirot.fullname" . }}-config
+        - name: connection-seed
+          configMap:
+            name: {{ include "poirot.fullname" . }}-connection-seed
+        - name: fingerprint
+          configMap:
+            name: {{ include "poirot.fullname" . }}-fingerprint
+        - name: scripts
+          configMap:
+            name: {{ include "poirot.fullname" . }}-scripts
