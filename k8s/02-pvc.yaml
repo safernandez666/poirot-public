@@ -1,0 +1,32 @@
+# poirot-data   — shared between hawk-scanner and dashboard (alerts.db, scan output)
+# poirot-config — writable config files (connection.yml, .env) shared by both pods
+#
+# ⚠  ReadWriteOnce requires both pods to land on the same node.
+#    For multi-node clusters use a ReadWriteMany StorageClass (NFS, Longhorn, etc.)
+#    and change accessModes accordingly.
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: poirot-data
+  namespace: poirot
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  # storageClassName: standard   # set to your cluster's StorageClass if needed
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: poirot-config
+  namespace: poirot
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+  # storageClassName: standard

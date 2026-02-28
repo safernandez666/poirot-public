@@ -1,0 +1,178 @@
+# ── Dashboard (Flask API + Next.js) ──────────────────────────────────────────
+#
+# Notes for K8s operation:
+# • Source management (add/remove via UI) writes to /app/.env.  In K8s this
+#   persists across container restarts (poirot-config PVC) but is NOT reflected
+#   back in the Secret.  For permanent changes, update 01-secret.yaml and
+#   run:  kubectl rollout restart deployment/hawk-scanner deployment/dashboard
+#
+# • The dashboard triggers scans via `docker exec hawk-scanner ...` using the
+#   Docker socket (hostPath).  This works on single-node clusters (k3s, k0s,
+#   Docker Desktop).  For multi-node or CRI-O / containerd-only setups the scan
+#   trigger must be adapted to use `kubectl exec` instead.
+#
+# • Both hawk-scanner and dashboard mount the same PVCs (ReadWriteOnce).
+#   They must be scheduled on the same node.  Use podAffinity or a single-node
+#   cluster, or switch PVCs to ReadWriteMany (NFS/Longhorn).
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: poirot
+  labels:
+    app: dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+    spec:
+      initContainers:
+        - name: init-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /config/connection.yml ]; then
+                echo "Seeding connection.yml..."
+                cp /seed/connection.yml /config/connection.yml
+              fi
+              echo "Writing .env..."
+              env | grep -E "^(SLACK_|SMTP_|THEHIVE_|OLLAMA_|SOURCE_)" \
+                | awk -F= 'BEGIN{OFS="="} {val=substr($0,index($0,"=")+1); print $1, val}' \
+                > /config/.env
+          envFrom:
+            - secretRef:
+                name: poirot-secret
+          volumeMounts:
+            - name: poirot-config
+              mountPath: /config
+            - name: connection-seed
+              mountPath: /seed
+      containers:
+        - name: dashboard
+          image: ghcr.io/safernandez666/poirot-dashboard:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: ALERTS_DB_PATH
+              value: /app/data/alerts.db
+            - name: FINGERPRINT_PATH
+              value: /app/config/fingerprint.yml
+            - name: CONNECTION_PATH
+              value: /app/config/connection.yml
+            - name: FLASK_DEBUG
+              value: "false"
+            - name: THEHIVE_URL
+              value: "http://thehive:9000"
+          envFrom:
+            - secretRef:
+                name: poirot-secret
+          volumeMounts:
+            # Shared data
+            - name: poirot-data
+              mountPath: /app/data
+            # Writable config
+            - name: poirot-config
+              mountPath: /app/config/connection.yml
+              subPath: connection.yml
+            - name: poirot-config
+              mountPath: /app/.env
+              subPath: .env
+            # Read-only configs
+            - name: fingerprint
+              mountPath: /app/config/fingerprint.yml
+              subPath: fingerprint.yml
+            - name: scripts
+              mountPath: /app/notification_manager.py
+              subPath: notification_manager.py
+            # Docker socket — needed to trigger scans via `docker exec hawk-scanner`
+            # Remove if running on a containerd-only cluster (see note above)
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: poirot-data
+          persistentVolumeClaim:
+            claimName: poirot-data
+        - name: poirot-config
+          persistentVolumeClaim:
+            claimName: poirot-config
+        - name: connection-seed
+          configMap:
+            name: poirot-connection-seed
+        - name: fingerprint
+          configMap:
+            name: poirot-fingerprint
+        - name: scripts
+          configMap:
+            name: poirot-scripts
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  namespace: poirot
+  labels:
+    app: dashboard
+spec:
+  selector:
+    app: dashboard
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      nodePort: 30080   # accessible at http://<NodeIP>:30080
+---
+# ── Optional Ingress ──────────────────────────────────────────────────────────
+# Uncomment to expose the dashboard via an Ingress controller (nginx, traefik…)
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: dashboard
+#   namespace: poirot
+#   annotations:
+#     nginx.ingress.kubernetes.io/rewrite-target: /
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#     - host: poirot.example.com
+#       http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: dashboard
+#                 port:
+#                   number: 80

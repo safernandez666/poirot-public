@@ -1,0 +1,47 @@
+# One-shot Job — seeds demo Kafka topics (transactions, employee_data, app_logs).
+# Runs once after Redpanda is ready, then exits.  Remove if you don't need demo data.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-setup
+  namespace: poirot
+  labels:
+    app: kafka-setup
+spec:
+  ttlSecondsAfterFinished: 300   # auto-clean the completed Job after 5 min
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        # Wait until Redpanda is accepting connections before producing messages
+        - name: wait-for-redpanda
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for Redpanda..."
+              until nc -z redpanda 9092; do sleep 3; done
+              echo "Redpanda is up"
+      containers:
+        - name: kafka-setup
+          image: ghcr.io/safernandez666/poirot-scanner:latest
+          command: ["python", "/app/kafka_demo_producer.py"]
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "redpanda:9092"
+            - name: PYTHONIOENCODING
+              value: "utf-8"
+            - name: LANG
+              value: "C.UTF-8"
+            - name: LC_ALL
+              value: "C.UTF-8"
+          volumeMounts:
+            - name: scripts
+              mountPath: /app/kafka_demo_producer.py
+              subPath: kafka_demo_producer.py
+      volumes:
+        - name: scripts
+          configMap:
+            name: poirot-scripts

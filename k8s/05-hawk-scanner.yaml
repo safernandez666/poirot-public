@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hawk-scanner
+  namespace: poirot
+  labels:
+    app: hawk-scanner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hawk-scanner
+  template:
+    metadata:
+      labels:
+        app: hawk-scanner
+    spec:
+      # ── Init: populate writable config volume from ConfigMap seed ──────────
+      initContainers:
+        - name: init-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              # Copy connection.yml seed only on first run (don't overwrite API changes)
+              if [ ! -f /config/connection.yml ]; then
+                echo "Seeding connection.yml..."
+                cp /seed/connection.yml /config/connection.yml
+              fi
+              # Build .env from Secret env vars so python-dotenv can read them
+              echo "Writing .env..."
+              env | grep -E "^(SLACK_|SMTP_|THEHIVE_|OLLAMA_|SOURCE_)" \
+                | awk -F= 'BEGIN{OFS="="} {val=substr($0,index($0,"=")+1); print $1, val}' \
+                > /config/.env
+          envFrom:
+            - secretRef:
+                name: poirot-secret
+          volumeMounts:
+            - name: poirot-config
+              mountPath: /config
+            - name: connection-seed
+              mountPath: /seed
+      containers:
+        - name: hawk-scanner
+          image: ghcr.io/safernandez666/poirot-scanner:latest
+          command: ["tail", "-f", "/dev/null"]   # kept alive for kubectl exec
+          env:
+            - name: PYTHONIOENCODING
+              value: "utf-8"
+            - name: LANG
+              value: "C.UTF-8"
+            - name: LC_ALL
+              value: "C.UTF-8"
+          envFrom:
+            - secretRef:
+                name: poirot-secret
+          volumeMounts:
+            # Writable config (connection.yml, .env)
+            - name: poirot-config
+              mountPath: /app/connection.yml
+              subPath: connection.yml
+            - name: poirot-config
+              mountPath: /app/.env
+              subPath: .env
+            # Read-only configs
+            - name: fingerprint
+              mountPath: /app/fingerprint.yml
+              subPath: fingerprint.yml
+            - name: scripts
+              mountPath: /app/notification_manager.py
+              subPath: notification_manager.py
+            # Shared data directory (alerts.db)
+            - name: poirot-data
+              mountPath: /app/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: poirot-data
+          persistentVolumeClaim:
+            claimName: poirot-data
+        - name: poirot-config
+          persistentVolumeClaim:
+            claimName: poirot-config
+        - name: connection-seed
+          configMap:
+            name: poirot-connection-seed
+        - name: fingerprint
+          configMap:
+            name: poirot-fingerprint
+        - name: scripts
+          configMap:
+            name: poirot-scripts

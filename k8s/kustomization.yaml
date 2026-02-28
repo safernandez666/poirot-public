@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: poirot
+
+resources:
+  - 00-namespace.yaml
+  - 01-secret.yaml
+  - 02-pvc.yaml
+  - 03-redpanda.yaml
+  - 04-kafka-setup.yaml
+  - 05-hawk-scanner.yaml
+  - 06-dashboard.yaml
+
+# Generates ConfigMaps directly from the source files in this repo.
+# Run:  kubectl apply -k k8s/
+configMapGenerator:
+  - name: poirot-fingerprint
+    files:
+      - fingerprint.yml=../hawk-scanner/fingerprint.yml
+  - name: poirot-connection-seed
+    files:
+      - connection.yml=../hawk-scanner/connection.yml
+  - name: poirot-scripts
+    files:
+      - notification_manager.py=../hawk-scanner/notification_manager.py
+      - kafka_demo_producer.py=../hawk-scanner/kafka_demo_producer.py
+
+generatorOptions:
+  disableNameSuffixHash: true
