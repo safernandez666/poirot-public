@@ -17,7 +17,6 @@ services:
   init:
     image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: poirot-init
-    platform: linux/amd64
     user: root
     volumes:
       - ./config:/output
@@ -38,7 +37,6 @@ services:
   scanner:
     image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: hawk-scanner
-    platform: linux/amd64
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -62,7 +60,6 @@ services:
   dashboard:
     image: ghcr.io/safernandez666/poirot-dashboard:${POIROT_TAG:-latest}
     container_name: hawk-dashboard
-    platform: linux/amd64
     security_opt:
       - no-new-privileges:false
       - seccomp:unconfined
@@ -176,7 +173,6 @@ services:
     image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: demo-setup
     profiles: ["demo"]
-    platform: linux/amd64
     depends_on:
       hawk-mysql:
         condition: service_healthy
