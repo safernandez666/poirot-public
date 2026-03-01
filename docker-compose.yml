@@ -6,13 +6,16 @@
 #   docker compose up -d                       # only Poirot
 #   docker compose --profile demo up -d        # Poirot + sample data sources
 #   open http://localhost:8080
+#
+# Pin a specific build:
+#   POIROT_TAG=abc1234 docker compose up -d
 # =============================================================================
 
 services:
 
   # Extracts default config files from the image on first run.
   init:
-    image: ghcr.io/safernandez666/poirot-scanner:latest
+    image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: poirot-init
     platform: linux/amd64
     user: root
@@ -33,7 +36,7 @@ services:
   # ============================================================================
 
   scanner:
-    image: ghcr.io/safernandez666/poirot-scanner:latest
+    image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: hawk-scanner
     platform: linux/amd64
     extra_hosts:
@@ -57,7 +60,7 @@ services:
       - poirot-network
 
   dashboard:
-    image: ghcr.io/safernandez666/poirot-dashboard:latest
+    image: ghcr.io/safernandez666/poirot-dashboard:${POIROT_TAG:-latest}
     container_name: hawk-dashboard
     platform: linux/amd64
     security_opt:
@@ -170,7 +173,7 @@ services:
       start_period: 30s
 
   demo-setup:
-    image: ghcr.io/safernandez666/poirot-scanner:latest
+    image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: demo-setup
     profiles: ["demo"]
     platform: linux/amd64
