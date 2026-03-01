@@ -7,6 +7,21 @@ set -e
 
 DB_PATH="${ALERTS_DB_PATH:-hawk-scanner/data/alerts.db}"
 
+# Helper: run SQL via Python's built-in sqlite3 (no sqlite3 CLI needed).
+# Runs inside the container to avoid WAL lock when Flask has the DB open.
+_sqlite3() {
+    _db="$1"; shift
+    _sql="$1"
+    _py="import sqlite3,sys; c=sqlite3.connect('/app/data/alerts.db'); r=c.execute(sys.argv[1]); print(r.fetchone()[0] if r.description else ''); c.commit(); c.close()"
+    if docker ps 2>/dev/null | grep -q hawk-dashboard; then
+        docker exec hawk-dashboard python3 -c "$_py" "$_sql"
+    elif docker ps 2>/dev/null | grep -q hawk-scanner; then
+        docker exec hawk-scanner python3 -c "$_py" "$_sql"
+    else
+        sqlite3 "$_db" "$_sql"
+    fi
+}
+
 # Read .env for TheHive config (prefer host-accessible URL)
 _read_env() {
     python3 -c "
@@ -46,14 +61,14 @@ printf '\n'
 # ─── 1. Clear SQLite database ────────────────────────────────────────────────
 printf '[1/4] Clearing alerts database...\n'
 if [ -f "$DB_PATH" ]; then
-    ALERT_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM alerts;" 2>/dev/null || printf '0')
-    SCAN_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM scan_runs;" 2>/dev/null || printf '0')
+    ALERT_COUNT=$(_sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM alerts;" 2>/dev/null || printf '0')
+    SCAN_COUNT=$(_sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM scan_runs;" 2>/dev/null || printf '0')
     printf '  Alerts found: %s\n' "$ALERT_COUNT"
     printf '  Scan runs found: %s\n' "$SCAN_COUNT"
-    sqlite3 "$DB_PATH" "DELETE FROM alerts;" 2>/dev/null || true
-    sqlite3 "$DB_PATH" "DELETE FROM sqlite_sequence WHERE name='alerts';" 2>/dev/null || true
-    sqlite3 "$DB_PATH" "DELETE FROM scan_runs;" 2>/dev/null || true
-    sqlite3 "$DB_PATH" "DELETE FROM sqlite_sequence WHERE name='scan_runs';" 2>/dev/null || true
+    _sqlite3 "$DB_PATH" "DELETE FROM alerts;" 2>/dev/null || true
+    _sqlite3 "$DB_PATH" "DELETE FROM sqlite_sequence WHERE name='alerts';" 2>/dev/null || true
+    _sqlite3 "$DB_PATH" "DELETE FROM scan_runs;" 2>/dev/null || true
+    _sqlite3 "$DB_PATH" "DELETE FROM sqlite_sequence WHERE name='scan_runs';" 2>/dev/null || true
     printf '  ✅ Database cleared\n'
 else
     printf '  ⚠️  Not found: %s\n' "$DB_PATH"
@@ -152,7 +167,7 @@ printf '\n'
 # ─── 4. Clear thehive_case_id references in DB ───────────────────────────────
 printf '[4/4] Clearing TheHive references in DB...\n'
 if [ -f "$DB_PATH" ]; then
-    sqlite3 "$DB_PATH" \
+    _sqlite3 "$DB_PATH" \
         "UPDATE alerts SET thehive_case_id=NULL, thehive_status=NULL WHERE thehive_case_id IS NOT NULL;" \
         2>/dev/null || true
     printf '  ✅ TheHive references cleared\n'
