@@ -72,10 +72,11 @@ Poirot uses **Keycloak** as identity provider. It starts automatically with the 
 
 #### Remote Access
 
-If you access Poirot from a different machine (not `localhost`), you **must** set the public URL of Keycloak so the browser can reach it. Add this to your `config/.env`:
+If you access Poirot from a different machine (not `localhost`), you **must** set both URLs in your `config/.env` so the browser and Keycloak know the public address:
 
 ```bash
 KEYCLOAK_PUBLIC_URL=http://<YOUR-SERVER-IP>:8180
+KC_HOSTNAME_URL=http://<YOUR-SERVER-IP>:8180
 ```
 
 Then restart: `docker compose down && docker compose up -d`

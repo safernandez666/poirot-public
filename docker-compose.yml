@@ -25,7 +25,7 @@ services:
         mkdir -p /output;
         [ -f /output/connection.yml ] || cp /app/connection.yml /output/connection.yml;
         [ -f /output/fingerprint.yml ] || cp /app/fingerprint.yml /output/fingerprint.yml;
-        [ -f /output/.env ] || { echo 'AUTH_ENABLED=true'; echo 'KEYCLOAK_PUBLIC_URL=http://localhost:8180'; } > /output/.env;
+        [ -f /output/.env ] || { echo 'AUTH_ENABLED=true'; echo 'KEYCLOAK_PUBLIC_URL=http://localhost:8180'; echo 'KC_HOSTNAME_URL=http://localhost:8180'; } > /output/.env;
         echo 'Config ready.';
       "
     restart: "no"
@@ -38,11 +38,13 @@ services:
     image: quay.io/keycloak/keycloak:26.1
     container_name: keycloak
     command: start-dev --import-realm --health-enabled=true
+    env_file:
+      - path: ./config/.env
+        required: false
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN_USER:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
       KC_DB: dev-file
-      KC_HOSTNAME_URL: ${KEYCLOAK_PUBLIC_URL:-http://localhost:8180}
       KC_HTTP_ENABLED: "true"
       KC_HTTP_PORT: 8080
       KC_PROXY_HEADERS: xforwarded
