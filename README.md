@@ -70,6 +70,18 @@ Poirot uses **Keycloak** as identity provider. It starts automatically with the 
 
 > Passwords are temporary — Keycloak will prompt a change on first login.
 
+#### Remote Access
+
+If you access Poirot from a different machine (not `localhost`), you **must** set the public URL of Keycloak so the browser can reach it. Add this to your `config/.env`:
+
+```bash
+KEYCLOAK_PUBLIC_URL=http://<YOUR-SERVER-IP>:8180
+```
+
+Then restart: `docker compose down && docker compose up -d`
+
+Without this, the dashboard will show **"Authentication required but could not connect to the identity provider"** because the browser tries to reach `localhost:8180` on the client machine.
+
 #### API Keys
 
 Admins can create API keys at **Settings → Security** for programmatic access. Each key is scoped to a role (admin, analyst, viewer).
