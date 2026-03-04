@@ -44,7 +44,9 @@
   "defaultRole": {
     "name": "default-roles-poirot",
     "composites": {
-      "realm": ["viewer"]
+      "realm": [
+        "viewer"
+      ]
     }
   },
   "clients": [
@@ -59,10 +61,10 @@
       "rootUrl": "http://localhost:8080",
       "baseUrl": "/",
       "redirectUris": [
-        "http://localhost:8080/*"
+        "*"
       ],
       "webOrigins": [
-        "http://localhost:8080"
+        "+"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
