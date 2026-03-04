@@ -49,7 +49,58 @@ docker compose up -d
 open http://localhost:8080
 ```
 
-This starts **only Poirot** (scanner + dashboard). You configure your data sources in `.env` or from the UI at `/sources`.
+This starts **only Poirot** (scanner + dashboard + Keycloak). You configure your data sources in `.env` or from the UI at `/sources`.
+
+### Authentication
+
+Poirot uses **Keycloak** as identity provider. It starts automatically with the stack.
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Dashboard | http://localhost:8080 | Redirects to Keycloak login |
+| Keycloak Admin Console | http://localhost:8180 | `admin` / `admin` |
+
+#### Test Users
+
+| User | Password | Role | Permissions |
+|------|----------|------|-------------|
+| `admin-user` | `Test1234!` | **admin** | Full access — settings, sources, patterns, scans, delete |
+| `analyst-user` | `Test1234!` | **analyst** | Run scans, add sources/patterns — no settings or delete |
+| `viewer-user` | `Test1234!` | **viewer** | Read-only — dashboard, alerts, timeline, reports |
+
+> Passwords are temporary — Keycloak will prompt a change on first login.
+
+#### API Keys
+
+Admins can create API keys at **Settings → Security** for programmatic access. Each key is scoped to a role (admin, analyst, viewer).
+
+```bash
+curl -H "X-API-Key: poirot_abc123..." http://localhost:8080/api/stats
+```
+
+#### SSL Mode
+
+Configure Keycloak SSL requirements at **Settings → Security** without editing files or rebuilding:
+
+| Mode | Description |
+|------|-------------|
+| `none` | No SSL required (development) |
+| `external` | SSL for external requests only (recommended for production) |
+| `all` | SSL for all requests |
+
+Changes apply immediately to Keycloak and are persisted in `.env` (`KC_SSL_REQUIRED`) for restart survival.
+
+#### Keycloak Details
+
+| Setting | Value |
+|---------|-------|
+| Realm | `poirot` |
+| Dashboard client | `poirot-dashboard` (public, PKCE S256) |
+| API client | `poirot-api` (confidential, service account) |
+| Roles | `admin`, `analyst`, `viewer` |
+| Brute force protection | Enabled (5 failures → 5 min lockout) |
+
+To disable authentication, set `AUTH_ENABLED=false` in `.env`.
 
 ### Option B — Try the demo (no configuration needed)
 
@@ -78,6 +129,27 @@ Once everything is up, go to the dashboard and run a scan — you'll see alerts 
 
 > Images are pulled automatically from GitHub Container Registry — no build required.
 
+### Option C — Oracle demo
+
+Test the Oracle scanner with a pre-loaded Oracle XE 21c database.
+
+```bash
+docker compose --profile oracle up -d
+```
+
+This adds:
+
+| Service | Description | Port |
+|---------|-------------|------|
+| **oracle-xe** | Oracle XE 21c with 4 tables of synthetic PII (customers, payments, employees, servers) | 1521 |
+| **oracle-setup** | Seeds 80 rows of credit cards, SSNs, AWS keys, SSH keys, JWTs, then exits | — |
+
+Wait ~2 minutes for Oracle to start, then run a scan from the dashboard. The Oracle source is pre-configured automatically.
+
+> **Note**: Oracle XE requires ~2GB RAM. On Apple Silicon, Docker emulates x86_64.
+
+Profiles can be combined: `docker compose --profile demo --profile oracle up -d`
+
 ---
 
 ## What gets started
@@ -89,6 +161,7 @@ Once everything is up, go to the dashboard and run a scan — you'll see alerts 
 | `poirot-init` | `ghcr.io/safernandez666/poirot-scanner` | Extracts default config files on first run, then exits |
 | `hawk-scanner` | `ghcr.io/safernandez666/poirot-scanner` | The scanning engine |
 | `hawk-dashboard` | `ghcr.io/safernandez666/poirot-dashboard` | Web UI + API on port **8080** |
+| `keycloak` | `quay.io/keycloak/keycloak:26.1` | Identity provider (login, RBAC, social login) on port **8180** |
 
 ### `docker compose --profile demo up -d` (core + demo data)
 
