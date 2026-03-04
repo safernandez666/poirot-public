@@ -67,8 +67,7 @@
         "+"
       ],
       "attributes": {
-        "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "http://localhost:8080/*"
+        "post.logout.redirect.uris": "+"
       },
       "protocol": "openid-connect",
       "fullScopeAllowed": true,
