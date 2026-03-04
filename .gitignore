@@ -1,0 +1,16 @@
+# Secrets / credentials
+config/.env
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+poirot_data/
+mysql_data/
+localstack_data/
+
+# IDE
+.vscode/
+.idea/

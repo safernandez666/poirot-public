@@ -1,0 +1,599 @@
+/* ============================================================================
+   Poirot Theme for Keycloak 26 — v5.0
+   PatternFly v5 overrides — mountain landscape + pill inputs + gradient CTA
+   ============================================================================ */
+
+:root {
+  --bg-primary: #0a0a1a;
+  --bg-input: rgba(255, 255, 255, 0.08);
+  --bg-input-hover: rgba(255, 255, 255, 0.12);
+  --bg-input-focus: rgba(255, 255, 255, 0.1);
+  --cyan: #00f0ff;
+  --cyan-hover: #33f5ff;
+  --gradient-start: #00f0ff;
+  --gradient-end: #3b82f6;
+  --text-primary: #fafafa;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --border: rgba(255, 255, 255, 0.08);
+  --radius-pill: 9999px;
+  --input-height: 54px;
+}
+
+/* ============================================================================
+   Base Reset
+   ============================================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body#keycloak-bg {
+  background: var(--bg-primary) !important;
+}
+
+/* ============================================================================
+   Main Login Container — Mountain Landscape Background
+   ============================================================================ */
+
+.pf-v5-c-login {
+  min-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(
+    180deg,
+    #0a0a0f 0%,
+    #0a0a14 20%,
+    #0c0e1a 40%,
+    #0e1220 55%,
+    #101828 68%,
+    #142030 78%,
+    #1a2a3d 88%,
+    #1e3448 100%
+  ) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Stars */
+.pf-v5-c-login::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 40% !important;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 8%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 22%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 5%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 18%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 12%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 30%, rgba(255,255,255,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 28%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 35% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 6%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 20%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 28%, rgba(255,255,255,0.15) 0%, transparent 100%) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+/* Mountain silhouette */
+.pf-v5-c-login::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 45% !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 400' preserveAspectRatio='none'%3E%3Cpath d='M0 400V250C20 245 60 230 100 220C140 210 180 190 240 175C300 160 340 165 380 155C420 145 480 120 520 110C560 100 600 95 640 105C680 115 720 130 760 125C800 120 840 100 880 90C920 80 960 85 1000 95C1040 105 1080 120 1120 115C1160 110 1200 90 1240 80C1280 70 1320 75 1360 85C1400 95 1420 100 1440 105V400Z' fill='%23121825' opacity='0.7'/%3E%3Cpath d='M0 400V280C40 275 80 260 140 250C200 240 240 245 280 235C320 225 380 200 420 190C460 180 500 175 540 180C580 185 620 195 660 195C700 195 740 185 780 175C820 165 860 155 900 150C940 145 980 150 1020 155C1060 160 1100 165 1140 160C1180 155 1220 140 1260 135C1300 130 1340 135 1380 140C1420 145 1440 150 1440 150V400Z' fill='%230d1018' opacity='0.85'/%3E%3Cpath d='M0 400V320C40 315 100 300 160 295C220 290 260 300 300 295C340 290 400 270 440 265C480 260 520 260 560 265C600 270 640 280 680 278C720 276 760 268 800 260C840 252 880 248 920 250C960 252 1000 260 1040 262C1080 264 1120 258 1160 255C1200 252 1240 250 1280 252C1320 254 1360 258 1400 260C1420 261 1440 262 1440 262V400Z' fill='%230a0a0f'/%3E%3C/svg%3E") !important;
+  background-size: cover !important;
+  background-position: bottom center !important;
+  background-repeat: no-repeat !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+/* ============================================================================
+   Login Container — Center and strip backgrounds
+   ============================================================================ */
+
+.pf-v5-c-login__container {
+  max-width: 400px !important;
+  width: 100% !important;
+  padding: 0 20px !important;
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+/* ============================================================================
+   Header — Logo circle with shield + glow
+   ============================================================================ */
+
+.pf-v5-c-login__header {
+  text-align: center !important;
+  margin-bottom: 16px !important;
+  width: 100% !important;
+}
+
+#kc-header-wrapper.pf-v5-c-brand {
+  display: block !important;
+  text-align: center !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(135deg, #00f0ff, #3b82f6) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  margin-bottom: 8px !important;
+}
+
+/* Shield logo — no circle, just the icon with glow */
+.pf-v5-c-login__header::before {
+  content: '' !important;
+  display: block !important;
+  width: 64px !important;
+  height: 64px !important;
+  margin: 0 auto 24px !important;
+  background: var(--cyan) !important;
+  filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.4)) drop-shadow(0 0 40px rgba(0, 240, 255, 0.15)) !important;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E") !important;
+  mask-size: contain !important;
+  mask-repeat: no-repeat !important;
+  mask-position: center !important;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z'/%3E%3C/svg%3E") !important;
+  -webkit-mask-size: contain !important;
+  -webkit-mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+  animation: shieldGlow 4s ease-in-out infinite !important;
+}
+
+.pf-v5-c-login__header::after {
+  display: none !important;
+}
+
+@keyframes shieldGlow {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.4)) drop-shadow(0 0 40px rgba(0, 240, 255, 0.15)); }
+  50% { filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.6)) drop-shadow(0 0 60px rgba(0, 240, 255, 0.25)); }
+}
+
+/* ============================================================================
+   Main area — transparent, no card
+   ============================================================================ */
+
+.pf-v5-c-login__main {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  max-width: 400px !important;
+  width: 100% !important;
+}
+
+.pf-v5-c-login__main-header {
+  padding: 0 !important;
+  margin-bottom: 36px !important;
+}
+
+.pf-v5-c-login__main-body {
+  padding: 0 !important;
+}
+
+.pf-v5-c-login__main-footer {
+  padding: 0 !important;
+}
+
+/* ============================================================================
+   Title — "Sign in to your account"
+   ============================================================================ */
+
+h1#kc-page-title,
+.pf-v5-c-title.pf-m-3xl {
+  color: var(--text-primary) !important;
+  font-size: 28px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  letter-spacing: -0.02em !important;
+  margin: 0 !important;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ============================================================================
+   Form labels — hide them (use placeholders)
+   ============================================================================ */
+
+.pf-v5-c-form__label {
+  display: none !important;
+}
+
+/* ============================================================================
+   Input Fields — Pill shaped, semi-transparent, blurred
+   ============================================================================ */
+
+.pf-v5-c-form__group {
+  margin-bottom: 18px !important;
+}
+
+/* The span wrapper around input — nuke all PF5 borders */
+.pf-v5-c-form-control,
+.pf-v5-c-form-control::before,
+.pf-v5-c-form-control::after {
+  --pf-v5-c-form-control--BorderRadius: 9999px !important;
+  --pf-v5-c-form-control--BackgroundColor: rgba(255, 255, 255, 0.08) !important;
+  --pf-v5-c-form-control--BorderColor: transparent !important;
+  --pf-v5-c-form-control--Color: #fafafa !important;
+  --pf-v5-c-form-control--after--BorderBottomColor: transparent !important;
+  --pf-v5-c-form-control--before--BorderColor: transparent !important;
+  border-color: transparent !important;
+}
+
+.pf-v5-c-form-control {
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-pill) !important;
+  height: var(--input-height) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  transition: all 0.25s ease !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.pf-v5-c-form-control:hover {
+  background: var(--bg-input-hover) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.pf-v5-c-form-control:focus-within {
+  background: var(--bg-input-focus) !important;
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12) !important;
+}
+
+/* The actual input element */
+.pf-v5-c-form-control input {
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--text-primary) !important;
+  font-size: 15px !important;
+  font-family: Inter, -apple-system, sans-serif !important;
+  height: 100% !important;
+  width: 100% !important;
+  padding: 0 24px 0 52px !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.pf-v5-c-form-control input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Username icon */
+#username {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 20px center !important;
+  background-size: 20px !important;
+}
+
+/* Password icon */
+#password {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 20px center !important;
+  background-size: 20px !important;
+}
+
+/* Password input group — make it pill too, kill PF5 inner borders */
+.pf-v5-c-input-group,
+.pf-v5-c-input-group::before,
+.pf-v5-c-input-group::after {
+  --pf-v5-c-input-group--before--BorderColor: transparent !important;
+  --pf-v5-c-input-group--after--BorderColor: transparent !important;
+}
+
+.pf-v5-c-input-group {
+  display: flex !important;
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-pill) !important;
+  height: var(--input-height) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  transition: all 0.25s ease !important;
+  overflow: hidden !important;
+}
+
+/* Kill inner borders on input-group items */
+.pf-v5-c-input-group__item,
+.pf-v5-c-input-group__item::before,
+.pf-v5-c-input-group__item::after {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.pf-v5-c-input-group:hover {
+  background: var(--bg-input-hover) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.pf-v5-c-input-group:focus-within {
+  background: var(--bg-input-focus) !important;
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12) !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-form-control {
+  background: transparent !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  height: 100% !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-form-control:focus-within {
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.pf-v5-c-input-group__item {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.pf-v5-c-input-group__item.pf-m-fill {
+  flex: 1 !important;
+}
+
+/* Show/hide password toggle — kill the box */
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control,
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control::before,
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control::after {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: var(--text-muted) !important;
+  padding: 0 16px 0 0 !important;
+  cursor: pointer !important;
+  border-radius: 0 !important;
+  --pf-v5-c-button--after--BorderColor: transparent !important;
+  --pf-v5-c-button--before--BorderColor: transparent !important;
+  --pf-v5-c-button--m-control--after--BorderTopWidth: 0 !important;
+  --pf-v5-c-button--m-control--after--BorderRightWidth: 0 !important;
+  --pf-v5-c-button--m-control--after--BorderBottomWidth: 0 !important;
+  --pf-v5-c-button--m-control--after--BorderLeftWidth: 0 !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control:hover {
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+}
+
+.pf-v5-c-input-group .pf-v5-c-button.pf-m-control:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* ============================================================================
+   Forgot Password link
+   ============================================================================ */
+
+.pf-v5-c-form__helper-text {
+  margin-top: 10px !important;
+}
+
+.pf-v5-c-helper-text__item-text a {
+  color: var(--text-muted) !important;
+  font-size: 13px !important;
+  text-decoration: none !important;
+  transition: color 0.2s ease !important;
+}
+
+.pf-v5-c-helper-text__item-text a:hover {
+  color: var(--text-secondary) !important;
+}
+
+/* ============================================================================
+   Sign In Button — Gradient pill (cyan → magenta)
+   ============================================================================ */
+
+.pf-v5-c-button.pf-m-primary {
+  display: block !important;
+  width: 100% !important;
+  height: var(--input-height) !important;
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%) !important;
+  border: none !important;
+  border-radius: var(--radius-pill) !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  font-family: Inter, -apple-system, sans-serif !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  letter-spacing: 0.02em !important;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.25) !important;
+  margin-top: 8px !important;
+}
+
+.pf-v5-c-button.pf-m-primary:hover {
+  background: linear-gradient(135deg, var(--cyan-hover) 0%, #60a5fa 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.35) !important;
+}
+
+.pf-v5-c-button.pf-m-primary:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2) !important;
+}
+
+.pf-v5-c-button.pf-m-primary:disabled {
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+  position: relative !important;
+  color: transparent !important;
+}
+
+.pf-v5-c-button.pf-m-primary:disabled::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 20px !important;
+  height: 20px !important;
+  margin-top: -10px !important;
+  margin-left: -10px !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  border-top-color: #ffffff !important;
+  border-radius: 50% !important;
+  animation: spin 0.8s linear infinite !important;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   Form Actions container
+   ============================================================================ */
+
+.pf-v5-c-form__actions {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ============================================================================
+   Social Login
+   ============================================================================ */
+
+.pf-v5-c-login__main-footer-links {
+  padding: 0 !important;
+}
+
+.pf-v5-c-login__main-footer-links-item a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  height: 48px !important;
+  background: var(--bg-input) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-pill) !important;
+  color: var(--text-primary) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.pf-v5-c-login__main-footer-links-item a:hover {
+  background: var(--bg-input-hover) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ============================================================================
+   Alerts
+   ============================================================================ */
+
+.pf-v5-c-alert {
+  background: rgba(15, 13, 30, 0.8) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  color: var(--text-primary) !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.pf-v5-c-alert.pf-m-danger {
+  border-left: 3px solid #ef4444 !important;
+}
+
+.pf-v5-c-alert.pf-m-success {
+  border-left: 3px solid #10b981 !important;
+}
+
+.pf-v5-c-alert.pf-m-warning {
+  border-left: 3px solid #f97316 !important;
+}
+
+.pf-v5-c-alert__title {
+  color: var(--text-primary) !important;
+}
+
+.pf-v5-c-alert__description {
+  color: var(--text-secondary) !important;
+}
+
+/* ============================================================================
+   Hide Unwanted Elements
+   ============================================================================ */
+
+.pf-v5-c-login__footer,
+#kc-locale-wrapper {
+  display: none !important;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .pf-v5-c-login__container {
+    padding: 0 16px !important;
+  }
+
+  .pf-v5-c-login__header::before {
+    width: 72px !important;
+    height: 72px !important;
+  }
+
+  .pf-v5-c-login__header::after {
+    width: 36px !important;
+    height: 36px !important;
+    margin: -54px auto 16px !important;
+  }
+
+  h1#kc-page-title,
+  .pf-v5-c-title.pf-m-3xl {
+    font-size: 22px !important;
+  }
+
+  .pf-v5-c-form-control,
+  .pf-v5-c-input-group {
+    height: 48px !important;
+  }
+
+  .pf-v5-c-form-control input {
+    font-size: 16px !important;
+    padding: 0 16px 0 46px !important;
+  }
+
+  #username, #password {
+    background-position: 16px center !important;
+  }
+
+  .pf-v5-c-button.pf-m-primary {
+    height: 48px !important;
+  }
+}

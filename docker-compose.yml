@@ -34,6 +34,35 @@ services:
   # CORE — always started
   # ============================================================================
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    container_name: keycloak
+    command: start-dev --import-realm --health-enabled=true
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN_USER:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
+      KC_DB: dev-file
+      KC_HOSTNAME_URL: ${KEYCLOAK_PUBLIC_URL:-http://localhost:8180}
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: 8080
+      KC_PROXY_HEADERS: xforwarded
+      KC_SSL_REQUIRED: ${KC_SSL_REQUIRED:-none}
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./keycloak/poirot-realm.json:/opt/keycloak/data/import/poirot-realm.json:ro
+      - ./keycloak/themes/poirot:/opt/keycloak/themes/poirot:ro
+      - keycloak_data:/opt/keycloak/data
+    networks:
+      - poirot-network
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && echo -e 'GET /realms/master HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && timeout 1 cat <&3 | grep -q '200 OK'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
   scanner:
     image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: hawk-scanner
@@ -70,6 +99,8 @@ services:
         condition: service_completed_successfully
       scanner:
         condition: service_started
+      keycloak:
+        condition: service_healthy
     ports:
       - "8080:80"
     env_file:
@@ -80,6 +111,11 @@ services:
       - FINGERPRINT_PATH=/app/config/fingerprint.yml
       - CONNECTION_PATH=/app/config/connection.yml
       - FLASK_DEBUG=false
+      - AUTH_ENABLED=${AUTH_ENABLED:-true}
+      - KEYCLOAK_URL=http://keycloak:8080
+      - KEYCLOAK_REALM=poirot
+      - KEYCLOAK_CLIENT_ID=poirot-api
+      - KEYCLOAK_PUBLIC_URL=${KEYCLOAK_PUBLIC_URL:-http://localhost:8180}
     volumes:
       - ./config/connection.yml:/app/config/connection.yml
       - ./config/fingerprint.yml:/app/config/fingerprint.yml
@@ -200,5 +236,6 @@ networks:
 
 volumes:
   poirot_data:
+  keycloak_data:
   mysql_data:
   localstack_data:
