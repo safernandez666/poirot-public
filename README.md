@@ -76,7 +76,7 @@ If you access Poirot from a different machine (not `localhost`), you **must** se
 
 ```bash
 KEYCLOAK_PUBLIC_URL=http://<YOUR-SERVER-IP>:8180
-KC_HOSTNAME_URL=http://<YOUR-SERVER-IP>:8180
+KC_HOSTNAME=http://<YOUR-SERVER-IP>:8180
 ```
 
 Then restart: `docker compose down && docker compose up -d`

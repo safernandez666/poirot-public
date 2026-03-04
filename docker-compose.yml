@@ -25,7 +25,7 @@ services:
         mkdir -p /output;
         [ -f /output/connection.yml ] || cp /app/connection.yml /output/connection.yml;
         [ -f /output/fingerprint.yml ] || cp /app/fingerprint.yml /output/fingerprint.yml;
-        [ -f /output/.env ] || { echo 'AUTH_ENABLED=true'; echo 'KEYCLOAK_PUBLIC_URL=http://localhost:8180'; echo 'KC_HOSTNAME_URL=http://localhost:8180'; } > /output/.env;
+        [ -f /output/.env ] || { echo 'AUTH_ENABLED=true'; echo 'KEYCLOAK_PUBLIC_URL=http://localhost:8180'; echo 'KC_HOSTNAME=http://localhost:8180'; } > /output/.env;
         echo 'Config ready.';
       "
     restart: "no"
