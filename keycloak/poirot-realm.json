@@ -64,7 +64,7 @@
         "*"
       ],
       "webOrigins": [
-        "+"
+        "*"
       ],
       "attributes": {
         "post.logout.redirect.uris": "+"
