@@ -32,7 +32,7 @@ Automated detection of sensitive data (PII/PCI) across your data sources — MyS
 
 ## Quickstart
 
-There are two ways to run Poirot: **connect your own data sources** or **try the demo** with pre-loaded synthetic data.
+There are multiple ways to run Poirot depending on your use case.
 
 ### Option A — Connect your own data sources
 
@@ -51,7 +51,103 @@ open http://localhost:8080
 
 This starts **only Poirot** (scanner + dashboard + Keycloak). You configure your data sources in `.env` or from the UI at `/sources`.
 
-### Authentication
+### Option B — Try the demo (no configuration needed)
+
+Use this to explore Poirot with synthetic data. It starts MySQL, S3 (LocalStack), and Kafka (Redpanda) containers pre-loaded with fake PII (credit cards, SSNs, AWS keys, etc.) ready to scan.
+
+```bash
+git clone https://github.com/safernandez666/poirot-public.git
+cd poirot-public
+
+cp .env.example .env    # works out of the box, no edits needed
+
+docker compose --profile demo up -d
+open http://localhost:8080
+```
+
+The demo profile adds:
+
+| Service | Description | Port |
+|---------|-------------|------|
+| **hawk-mysql** | MySQL 8.0 with 4 tables of synthetic PII (customers, payments, users, servers) | 3306 |
+| **localstack** | S3-compatible storage with JSON files containing fake credentials and PII | 4566 |
+| **redpanda** | Kafka-compatible broker with 3 topics of sensitive messages | 19092 |
+| **demo-setup** | Seeds all the above with ~200 records of synthetic data, then exits | — |
+
+Once everything is up, go to the dashboard and run a scan — you'll see alerts for credit cards, SSNs, AWS keys, and more.
+
+### Option C — Oracle demo
+
+Test the Oracle scanner with a pre-loaded Oracle XE 21c database.
+
+```bash
+docker compose --profile oracle up -d
+```
+
+This adds:
+
+| Service | Description | Port |
+|---------|-------------|------|
+| **oracle-xe** | Oracle XE 21c with 4 tables of synthetic PII (customers, payments, employees, servers) | 1521 |
+| **oracle-setup** | Seeds 80 rows of credit cards, SSNs, AWS keys, SSH keys, JWTs, then exits | — |
+
+Wait ~2 minutes for Oracle to start, then run a scan from the dashboard. The Oracle source is pre-configured automatically.
+
+> **Note**: Oracle XE requires ~2GB RAM. On Apple Silicon, Docker emulates x86_64.
+
+### Option D — TheHive (case management)
+
+Add TheHive 5 for automatic case creation from scan findings.
+
+```bash
+docker compose --profile thehive up -d
+```
+
+This adds:
+
+| Service | Description | Port |
+|---------|-------------|------|
+| **cassandra** | Database backend for TheHive | — |
+| **elasticsearch** | Search engine for TheHive | — |
+| **thehive** | TheHive 5 case management platform | 9000 |
+
+Configure `THEHIVE_API_KEY` in `.env` after creating an API key in TheHive.
+
+> **Note**: TheHive requires ~3GB RAM (Cassandra + Elasticsearch + TheHive).
+
+### Option E — Ollama AI (report generation)
+
+Add local AI for generating security reports from scan findings.
+
+```bash
+docker compose --profile ollama up -d
+```
+
+This adds:
+
+| Service | Description | Port |
+|---------|-------------|------|
+| **ollama** | Local LLM (llama3.2:3b) for AI-powered report generation | 11434 |
+
+> **Note**: First start downloads the model (~2GB). GPU acceleration recommended.
+
+### Combining profiles
+
+Profiles can be combined freely:
+
+```bash
+# Demo data + Oracle + TheHive + AI reports
+docker compose --profile demo --profile oracle --profile thehive --profile ollama up -d
+
+# Just Oracle + TheHive
+docker compose --profile oracle --profile thehive up -d
+```
+
+> Images are pulled automatically from GitHub Container Registry — no build required.
+
+---
+
+## Authentication
 
 Poirot uses **Keycloak** as identity provider. It starts automatically with the stack.
 
@@ -85,7 +181,7 @@ Without this, the dashboard will show **"Authentication required but could not c
 
 #### API Keys
 
-Admins can create API keys at **Settings → Security** for programmatic access. Each key is scoped to a role (admin, analyst, viewer).
+Admins can create API keys at **Settings > Security** for programmatic access. Each key is scoped to a role (admin, analyst, viewer).
 
 ```bash
 curl -H "X-API-Key: poirot_abc123..." http://localhost:8080/api/stats
@@ -93,7 +189,7 @@ curl -H "X-API-Key: poirot_abc123..." http://localhost:8080/api/stats
 
 #### SSL Mode
 
-Configure Keycloak SSL requirements at **Settings → Security** without editing files or rebuilding:
+Configure Keycloak SSL requirements at **Settings > Security** without editing files or rebuilding:
 
 | Mode | Description |
 |------|-------------|
@@ -111,57 +207,9 @@ Changes apply immediately to Keycloak and are persisted in `.env` (`KC_SSL_REQUI
 | Dashboard client | `poirot-dashboard` (public, PKCE S256) |
 | API client | `poirot-api` (confidential, service account) |
 | Roles | `admin`, `analyst`, `viewer` |
-| Brute force protection | Enabled (5 failures → 5 min lockout) |
+| Brute force protection | Enabled (5 failures > 5 min lockout) |
 
 To disable authentication, set `AUTH_ENABLED=false` in `.env`.
-
-### Option B — Try the demo (no configuration needed)
-
-Use this to explore Poirot with synthetic data. It starts MySQL, S3 (LocalStack), and Kafka (Redpanda) containers pre-loaded with fake PII (credit cards, SSNs, AWS keys, etc.) ready to scan.
-
-```bash
-git clone https://github.com/safernandez666/poirot-public.git
-cd poirot-public
-
-cp .env.example .env    # works out of the box, no edits needed
-
-docker compose --profile demo up -d
-open http://localhost:8080
-```
-
-The demo profile adds:
-
-| Service | Description | Port |
-|---------|-------------|------|
-| **hawk-mysql** | MySQL 8.0 with 4 tables of synthetic PII (customers, payments, users, servers) | 3306 |
-| **localstack** | S3-compatible storage with JSON files containing fake credentials and PII | 4566 |
-| **redpanda** | Kafka-compatible broker with 3 topics of sensitive messages | 19092 |
-| **demo-setup** | Seeds all the above with ~200 records of synthetic data, then exits | — |
-
-Once everything is up, go to the dashboard and run a scan — you'll see alerts for credit cards, SSNs, AWS keys, and more.
-
-> Images are pulled automatically from GitHub Container Registry — no build required.
-
-### Option C — Oracle demo
-
-Test the Oracle scanner with a pre-loaded Oracle XE 21c database.
-
-```bash
-docker compose --profile oracle up -d
-```
-
-This adds:
-
-| Service | Description | Port |
-|---------|-------------|------|
-| **oracle-xe** | Oracle XE 21c with 4 tables of synthetic PII (customers, payments, employees, servers) | 1521 |
-| **oracle-setup** | Seeds 80 rows of credit cards, SSNs, AWS keys, SSH keys, JWTs, then exits | — |
-
-Wait ~2 minutes for Oracle to start, then run a scan from the dashboard. The Oracle source is pre-configured automatically.
-
-> **Note**: Oracle XE requires ~2GB RAM. On Apple Silicon, Docker emulates x86_64.
-
-Profiles can be combined: `docker compose --profile demo --profile oracle up -d`
 
 ---
 
@@ -179,6 +227,18 @@ Profiles can be combined: `docker compose --profile demo --profile oracle up -d`
 ### `docker compose --profile demo up -d` (core + demo data)
 
 Everything above, plus MySQL, LocalStack (S3), Redpanda (Kafka), and the demo seeder.
+
+### `docker compose --profile oracle up -d` (core + Oracle)
+
+Everything above, plus Oracle XE 21c with synthetic PII data.
+
+### `docker compose --profile thehive up -d` (core + case management)
+
+Everything above, plus Cassandra, Elasticsearch, and TheHive 5.
+
+### `docker compose --profile ollama up -d` (core + AI)
+
+Everything above, plus Ollama with llama3.2:3b for report generation.
 
 ---
 
@@ -216,6 +276,56 @@ SOURCE_KAFKA_EVENTS={"bootstrap_servers":"kafka:9092","topics":"orders,users","g
 Sources can also be added and managed from the dashboard UI at `/sources`.
 
 For full configuration docs including IAM auth (S3, MSK), SASL/SCRAM, and Oracle Thin mode, open `/docs` in the dashboard after starting the stack.
+
+---
+
+## Updating to the latest version
+
+When new images are published, update your deployment:
+
+```bash
+# Stop the stack
+docker compose down
+
+# Remove old Poirot images to force pulling the latest
+docker rmi ghcr.io/safernandez666/poirot-scanner:latest ghcr.io/safernandez666/poirot-dashboard:latest
+
+# Start again (pulls new images automatically)
+docker compose up -d
+```
+
+Or use the one-liner:
+
+```bash
+docker compose down && docker rmi ghcr.io/safernandez666/poirot-scanner:latest ghcr.io/safernandez666/poirot-dashboard:latest 2>/dev/null; docker compose up -d
+```
+
+To pin a specific version instead of `latest`:
+
+```bash
+POIROT_TAG=<commit-sha> docker compose up -d
+```
+
+### Full reset (removes all data)
+
+```bash
+docker compose --profile demo --profile oracle --profile thehive --profile ollama down -v --remove-orphans
+docker rmi ghcr.io/safernandez666/poirot-scanner:latest ghcr.io/safernandez666/poirot-dashboard:latest 2>/dev/null
+```
+
+This removes all containers, volumes (alerts, scan history, Keycloak users), and cached images.
+
+---
+
+## Profiles summary
+
+| Profile | Adds | Extra RAM |
+|---------|------|-----------|
+| *(none)* | Scanner + Dashboard + Keycloak | ~1 GB |
+| `demo` | MySQL, LocalStack (S3), Redpanda (Kafka), demo seeder | +1 GB |
+| `oracle` | Oracle XE 21c, oracle seeder | +2 GB |
+| `thehive` | Cassandra, Elasticsearch, TheHive 5 | +3 GB |
+| `ollama` | Ollama with llama3.2:3b | +2 GB |
 
 ---
 

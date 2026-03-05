@@ -5,6 +5,9 @@
 #   cp .env.example .env
 #   docker compose up -d                       # only Poirot
 #   docker compose --profile demo up -d        # Poirot + sample data sources
+#   docker compose --profile oracle up -d      # Poirot + Oracle XE demo
+#   docker compose --profile thehive up -d     # Poirot + TheHive case mgmt
+#   docker compose --profile ollama up -d      # Poirot + AI reports
 #   open http://localhost:8080
 #
 # Pin a specific build:
@@ -133,7 +136,7 @@ services:
       start_period: 60s
 
   # ============================================================================
-  # DEMO profile — sample data sources with synthetic PII
+  # DEMO profile — MySQL + S3 + Kafka with synthetic PII
   # Start with: docker compose --profile demo up -d
   # ============================================================================
 
@@ -230,6 +233,155 @@ services:
     networks:
       - poirot-network
 
+  # ============================================================================
+  # ORACLE profile — Oracle XE 21c with synthetic PII
+  # Start with: docker compose --profile oracle up -d
+  # ============================================================================
+
+  oracle-xe:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oracle-xe
+    profiles: ["oracle"]
+    environment:
+      ORACLE_PASSWORD: ${DEMO_ORACLE_PASSWORD:-OracleDemo123}
+      APP_USER: poirot
+      APP_USER_PASSWORD: ${DEMO_ORACLE_APP_PASSWORD:-PoirotScan1}
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    networks:
+      - poirot-network
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 120s
+
+  oracle-setup:
+    image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
+    container_name: oracle-setup
+    profiles: ["oracle"]
+    platform: linux/amd64
+    depends_on:
+      oracle-xe:
+        condition: service_healthy
+    environment:
+      - ORACLE_HOST=oracle-xe
+      - ORACLE_PORT=1521
+      - ORACLE_SERVICE=XEPDB1
+      - ORACLE_USER=poirot
+      - ORACLE_PASSWORD=${DEMO_ORACLE_APP_PASSWORD:-PoirotScan1}
+    volumes:
+      - ./scripts/oracle-seed.py:/app/oracle_seed.py
+    command: python /app/oracle_seed.py
+    restart: "no"
+    networks:
+      - poirot-network
+
+  # ============================================================================
+  # THEHIVE profile — TheHive 5 case management
+  # Start with: docker compose --profile thehive up -d
+  # ============================================================================
+
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra
+    profiles: ["thehive"]
+    environment:
+      - MAX_HEAP_SIZE=1G
+      - HEAP_NEWSIZE=256M
+      - CASSANDRA_CLUSTER_NAME=thehive
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    networks:
+      - poirot-network
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+    container_name: elasticsearch
+    profiles: ["thehive"]
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - cluster.name=thehive
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - poirot-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  thehive:
+    image: strangebee/thehive:5.0
+    platform: linux/amd64
+    container_name: thehive
+    profiles: ["thehive"]
+    depends_on:
+      cassandra:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    environment:
+      - JVM_OPTS=-Xms1G -Xmx1G
+    volumes:
+      - thehive_data:/opt/thehive/data
+      - ./thehive-config/application.conf:/etc/thehive/application.conf:ro
+    networks:
+      - poirot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:9000/api/v1/status | grep -qE '200|401'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+
+  # ============================================================================
+  # OLLAMA profile — Local AI for report generation
+  # Start with: docker compose --profile ollama up -d
+  # ============================================================================
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_ORIGINS=*
+    networks:
+      - poirot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    entrypoint: >
+      sh -c "
+        /bin/ollama serve &
+        sleep 5
+        ollama pull llama3.2:3b
+        wait
+      "
+
 networks:
   poirot-network:
     driver: bridge
@@ -239,3 +391,8 @@ volumes:
   keycloak_data:
   mysql_data:
   localstack_data:
+  oracle_data:
+  cassandra_data:
+  elasticsearch_data:
+  thehive_data:
+  ollama_data:
