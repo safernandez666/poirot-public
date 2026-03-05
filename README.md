@@ -51,6 +51,13 @@ open http://localhost:8080
 
 This starts **only Poirot** (scanner + dashboard + Keycloak). You configure your data sources in `.env` or from the UI at `/sources`.
 
+> **Remote / Linux server?** If you access Poirot from a different machine (not `localhost`), set these in `config/.env` before starting:
+> ```bash
+> KEYCLOAK_PUBLIC_URL=http://<YOUR-SERVER-IP>:8180
+> KC_HOSTNAME=http://<YOUR-SERVER-IP>:8180
+> ```
+> Without this, login will fail because the browser can't reach Keycloak at `localhost`.
+
 ### Option B — Try the demo (no configuration needed)
 
 Use this to explore Poirot with synthetic data. It starts MySQL, S3 (LocalStack), and Kafka (Redpanda) containers pre-loaded with fake PII (credit cards, SSNs, AWS keys, etc.) ready to scan.
