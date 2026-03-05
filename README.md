@@ -34,6 +34,12 @@ Automated detection of sensitive data (PII/PCI) across your data sources — MyS
 
 There are multiple ways to run Poirot depending on your use case.
 
+> **Already have Poirot images from a previous install?** Make sure you're running the latest version. Docker won't pull new images if it already has a `latest` tag cached locally. Run this first:
+> ```bash
+> docker rmi ghcr.io/safernandez666/poirot-scanner:latest ghcr.io/safernandez666/poirot-dashboard:latest 2>/dev/null
+> ```
+> Then `docker compose up -d` will pull the newest images automatically.
+
 ### Option A — Connect your own data sources
 
 Use this when you already have databases, S3 buckets, or Kafka clusters you want to scan.
