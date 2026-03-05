@@ -58,12 +58,41 @@ persistence:
     storageClassName: ""
     accessMode: ReadWriteOnce
 
-# ── Docker socket ─────────────────────────────────────────────────────────────
-# Required to trigger scans via `docker exec hawk-scanner`.
-# Disable on containerd-only clusters (CRI-O, K3s without Docker) and adapt
-# the scan trigger mechanism accordingly.
-dockerSocket:
+# ── Keycloak / Auth ───────────────────────────────────────────────────────
+keycloak:
   enabled: true
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: "26.1"
+    pullPolicy: IfNotPresent
+  adminUser: admin
+  adminPassword: admin
+  publicUrl: "http://localhost:8180"    # external URL users hit in the browser
+  sslRequired: "none"                   # set to "external" in production
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  persistence:
+    size: 1Gi
+    storageClassName: ""
+    accessMode: ReadWriteOnce
+
+auth:
+  enabled: true
+  keycloakUrl: "http://keycloak:8080"   # internal Service URL
+  realm: poirot
+  clientId: poirot-api
+
+# ── Docker socket ─────────────────────────────────────────────────────────────
+# NOT required in Kubernetes — the dashboard bundles the scanner and runs scans
+# as a local subprocess (auto-detected via KUBERNETES_SERVICE_HOST).
+# Only enable for Docker Compose deployments using `docker exec`.
+dockerSocket:
+  enabled: false
   path: /var/run/docker.sock
 
 # ── Notifications ─────────────────────────────────────────────────────────────
@@ -74,7 +103,7 @@ slack:
 smtp:
   enabled: false
   host: "smtp.gmail.com"
-  port: "587"
+  port: 587
   useTls: "true"
   username: ""
   password: ""

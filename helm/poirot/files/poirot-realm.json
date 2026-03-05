@@ -1,0 +1,246 @@
+{
+  "realm": "poirot",
+  "enabled": true,
+  "displayName": "Poirot Security",
+  "loginTheme": "poirot",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "rememberMe": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 300,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 3600,
+  "failureFactor": 5,
+  "sslRequired": "${KC_SSL_REQUIRED:-none}",
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Full system access — CRUD users, config, scans, alerts"
+      },
+      {
+        "name": "analyst",
+        "description": "Read + modify alerts, trigger scans, view config"
+      },
+      {
+        "name": "viewer",
+        "description": "Read-only access to alerts, stats, reports"
+      }
+    ]
+  },
+  "defaultRole": {
+    "name": "default-roles-poirot",
+    "composites": {
+      "realm": [
+        "viewer"
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "poirot-dashboard",
+      "name": "Poirot Dashboard",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "rootUrl": "http://localhost:8080",
+      "baseUrl": "/",
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "protocolMappers": [
+        {
+          "name": "audience-poirot-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "poirot-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "poirot-api",
+      "name": "Poirot API (Backend)",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${KC_API_CLIENT_SECRET:-change-me-in-production}",
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "protocolMappers": [
+        {
+          "name": "audience-poirot-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "poirot-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "identityProviders": [
+    {
+      "alias": "github",
+      "displayName": "GitHub",
+      "providerId": "github",
+      "enabled": false,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${KC_GITHUB_CLIENT_ID:}",
+        "clientSecret": "${KC_GITHUB_CLIENT_SECRET:}",
+        "defaultScope": "user:email",
+        "syncMode": "IMPORT"
+      }
+    },
+    {
+      "alias": "google",
+      "displayName": "Google",
+      "providerId": "google",
+      "enabled": false,
+      "trustEmail": true,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "clientId": "${KC_GOOGLE_CLIENT_ID:}",
+        "clientSecret": "${KC_GOOGLE_CLIENT_SECRET:}",
+        "defaultScope": "openid email profile",
+        "syncMode": "IMPORT"
+      }
+    }
+  ],
+  "identityProviderMappers": [
+    {
+      "name": "github-default-viewer-role",
+      "identityProviderAlias": "github",
+      "identityProviderMapper": "hardcoded-role-idp-mapper",
+      "config": {
+        "role": "viewer"
+      }
+    },
+    {
+      "name": "google-default-viewer-role",
+      "identityProviderAlias": "google",
+      "identityProviderMapper": "hardcoded-role-idp-mapper",
+      "config": {
+        "role": "viewer"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "poirot-admin",
+      "email": "poirot-admin@local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Poirot",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": true
+        }
+      ],
+      "realmRoles": [
+        "admin",
+        "default-roles-poirot"
+      ]
+    },
+    {
+      "username": "admin-user",
+      "email": "admin@poirot.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Admin",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Test1234!",
+          "temporary": true
+        }
+      ],
+      "realmRoles": [
+        "admin",
+        "default-roles-poirot"
+      ]
+    },
+    {
+      "username": "analyst-user",
+      "email": "analyst@poirot.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Analyst",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Test1234!",
+          "temporary": true
+        }
+      ],
+      "realmRoles": [
+        "analyst",
+        "default-roles-poirot"
+      ]
+    },
+    {
+      "username": "viewer-user",
+      "email": "viewer@poirot.local",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Viewer",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Test1234!",
+          "temporary": true
+        }
+      ],
+      "realmRoles": [
+        "viewer",
+        "default-roles-poirot"
+      ]
+    }
+  ]
+}
