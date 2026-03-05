@@ -87,7 +87,20 @@ The demo profile adds:
 | **redpanda** | Kafka-compatible broker with 3 topics of sensitive messages | 19092 |
 | **demo-setup** | Seeds all the above with ~200 records of synthetic data, then exits | — |
 
-Once everything is up, go to the dashboard and run a scan — you'll see alerts for credit cards, SSNs, AWS keys, and more.
+Once everything is up, add the demo sources from the dashboard at `/sources` or add them to `config/.env`:
+
+```bash
+# MySQL demo source
+SOURCE_MYSQL_POC_MYSQL={"host":"hawk-mysql","port":3306,"user":"root","password":"rootpassword","database":"pocdb"}
+
+# S3 demo source
+SOURCE_S3_POC_BUCKET={"access_key":"test","secret_key":"test","bucket_name":"poc-bucket","endpoint_url":"http://localstack:4566"}
+
+# Kafka demo source
+SOURCE_KAFKA_DEMO={"bootstrap_servers":"redpanda:9092","topics":"transactions,employee_data,app_logs","max_messages":"500","group_id":"poirot-scanner"}
+```
+
+Then run a scan from the dashboard — you'll see alerts for credit cards, SSNs, AWS keys, and more.
 
 ### Option C — Oracle demo
 
@@ -104,7 +117,14 @@ This adds:
 | **oracle-xe** | Oracle XE 21c with 4 tables of synthetic PII (customers, payments, employees, servers) | 1521 |
 | **oracle-setup** | Seeds 80 rows of credit cards, SSNs, AWS keys, SSH keys, JWTs, then exits | — |
 
-Wait ~2 minutes for Oracle to start, then run a scan from the dashboard. The Oracle source is pre-configured automatically.
+Wait ~2 minutes for Oracle to start, then add the Oracle source from the dashboard at `/sources` or add it to `config/.env`:
+
+```bash
+# Oracle demo source
+SOURCE_ORACLE_DEMO={"host":"oracle-xe","port":1521,"service_name":"XEPDB1","user":"poirot","password":"PoirotScan1"}
+```
+
+Then run a scan from the dashboard.
 
 > **Note**: Oracle XE requires ~2GB RAM. On Apple Silicon, Docker emulates x86_64.
 
