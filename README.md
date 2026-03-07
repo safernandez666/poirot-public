@@ -117,14 +117,7 @@ This adds:
 | **oracle-xe** | Oracle XE 21c with 4 tables of synthetic PII (customers, payments, employees, servers) | 1521 |
 | **oracle-setup** | Seeds 80 rows of credit cards, SSNs, AWS keys, SSH keys, JWTs, then exits | — |
 
-Wait ~2 minutes for Oracle to start, then add the Oracle source from the dashboard at `/sources` or add it to `config/.env`:
-
-```bash
-# Oracle demo source
-SOURCE_ORACLE_DEMO={"host":"oracle-xe","port":1521,"service_name":"XEPDB1","user":"poirot","password":"PoirotScan1"}
-```
-
-Then run a scan from the dashboard.
+Wait ~2 minutes for Oracle to start. The Oracle demo source is **automatically registered** when the profile starts — no manual configuration needed. Just run a scan from the dashboard.
 
 > **Note**: Oracle XE requires ~2GB RAM. On Apple Silicon, Docker emulates x86_64.
 
@@ -148,9 +141,9 @@ Configure `THEHIVE_API_KEY` in `.env` after creating an API key in TheHive.
 
 > **Note**: TheHive requires ~3GB RAM (Cassandra + Elasticsearch + TheHive).
 
-### Option E — Ollama AI (report generation)
+### Option E — Ollama AI (report generation + AI classification)
 
-Add local AI for generating security reports from scan findings.
+Add local AI for generating security reports and automatically classifying low-confidence findings.
 
 ```bash
 docker compose --profile ollama up -d
@@ -160,7 +153,9 @@ This adds:
 
 | Service | Description | Port |
 |---------|-------------|------|
-| **ollama** | Local LLM (llama3.2:3b) for AI-powered report generation | 11434 |
+| **ollama** | Local LLM (llama3.2:3b) for AI-powered report generation and finding classification | 11434 |
+
+To enable AI classification of scan findings, set `OLLAMA_ENABLED=true` in `config/.env`. When enabled, the scanner will send low-confidence findings to Ollama for a second opinion (true positive, false positive, or uncertain), adjusting confidence scores automatically.
 
 > **Note**: First start downloads the model (~2GB). GPU acceleration recommended.
 
@@ -350,6 +345,67 @@ This removes all containers, volumes (alerts, scan history, Keycloak users), and
 
 ---
 
+## Scanner Features
+
+### Pattern Library (38 patterns)
+
+Poirot ships with 38 built-in patterns covering PII, PCI, credentials, and cloud secrets:
+
+- **PCI**: Visa, Mastercard, Amex, Discover, IBAN
+- **PII**: SSN, US Phone, Argentina DNI, Argentina CUIL/CUIT, Brazil CPF, Email
+- **Credentials**: AWS Access/Secret Key, GitHub tokens (PAT, OAuth, App, Actions, Codespaces), Slack Bot/User tokens, Stripe (Secret/Public/Restricted), Google API Key, Azure Connection String, npm token, Twilio API Key, SendGrid API Key, HashiCorp Vault token, DB Connection Strings, Bitcoin Address
+- **Secrets**: SSH Private Key, JWT, Generic API Key, Private Key, Password in URL
+
+Patterns are managed at `/patterns` in the dashboard or in `fingerprint.yml`.
+
+### Post-Match Validators
+
+To reduce false positives, certain patterns run a secondary validation after regex matching:
+
+| Validator | Patterns | Method |
+|-----------|----------|--------|
+| Luhn check | Visa, Mastercard, Amex, Discover | Credit card checksum (ISO/IEC 7812) |
+| SSN range check | US SSN | Area/group/serial validation + known-invalid blocklist |
+| AWS entropy | AWS Secret Key | Shannon entropy > 4.5 filters low-entropy strings |
+| IBAN check | IBAN | ISO 7064 Mod 97-10 |
+| Base58Check | Bitcoin Address | Bitcoin address checksum verification |
+| Password in URL | DB Connection String | Verifies a password is present in the connection string |
+
+This reduces false positives by **20-40%** without missing real findings.
+
+### Confidence Scoring
+
+Every finding receives a confidence score (0.0–1.0) based on multiple signals:
+
+| Signal | Effect |
+|--------|--------|
+| Base score | 0.5 for all matches |
+| Validator passed | +0.3 |
+| High-specificity pattern (e.g. GitHub PAT, Stripe key) | +0.3 |
+| Column name hint (e.g. "credit_card", "ssn") | +0.1 |
+| Known test data (e.g. `4111111111111111`) | −0.3 |
+
+Use the `min_confidence` query parameter on `/api/alerts` to filter low-confidence findings.
+
+### AI Classification (Ollama)
+
+When `OLLAMA_ENABLED=true` and the Ollama profile is running, the scanner sends low-confidence findings to the local LLM for classification:
+
+- **True positive**: confidence boosted by +0.1
+- **False positive**: confidence set to 0.2
+- **Uncertain**: no change
+
+Each AI-reviewed finding includes an `ai_review` field with the verdict and reasoning. The feature degrades gracefully — if Ollama is unavailable, scanning continues normally without AI classification.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `OLLAMA_ENABLED` | `false` | Enable AI classification |
+| `OLLAMA_URL` | `http://ollama:11434` | Ollama API endpoint |
+| `OLLAMA_MODEL` | `llama3.2:3b` | Model to use |
+| `AI_CONFIDENCE_THRESHOLD` | `0.65` | Only classify findings below this confidence |
+
+---
+
 ## Profiles summary
 
 | Profile | Adds | Extra RAM |
@@ -358,7 +414,7 @@ This removes all containers, volumes (alerts, scan history, Keycloak users), and
 | `demo` | MySQL, LocalStack (S3), Redpanda (Kafka), demo seeder | +1 GB |
 | `oracle` | Oracle XE 21c, oracle seeder | +2 GB |
 | `thehive` | Cassandra, Elasticsearch, TheHive 5 | +3 GB |
-| `ollama` | Ollama with llama3.2:3b | +2 GB |
+| `ollama` | Ollama with llama3.2:3b (reports + AI classification) | +2 GB |
 
 ---
 

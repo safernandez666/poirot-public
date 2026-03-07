@@ -59,7 +59,7 @@ services:
       - ./keycloak/themes/poirot:/opt/keycloak/themes/poirot:ro
       - keycloak_data:/opt/keycloak/data
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && echo -e 'GET /realms/master HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && timeout 1 cat <&3 | grep -q '200 OK'"]
       interval: 15s
@@ -87,9 +87,10 @@ services:
       - ./config/connection.yml:/app/connection.yml
       - ./config/fingerprint.yml:/app/fingerprint.yml
       - poirot_data:/app/data
+      - scanner_sources:/app/sources
     command: tail -f /dev/null
     networks:
-      - poirot-network
+      - hawk-network
 
   dashboard:
     image: ghcr.io/safernandez666/poirot-dashboard:${POIROT_TAG:-latest}
@@ -116,17 +117,20 @@ services:
       - FINGERPRINT_PATH=/app/config/fingerprint.yml
       - CONNECTION_PATH=/app/config/connection.yml
       - FLASK_DEBUG=false
+      - AUTH_ENABLED=${AUTH_ENABLED:-false}
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=poirot
       - KEYCLOAK_CLIENT_ID=poirot-api
+      - KEYCLOAK_PUBLIC_URL=${KEYCLOAK_PUBLIC_URL:-http://localhost:8180}
     volumes:
       - ./config/connection.yml:/app/config/connection.yml
       - ./config/fingerprint.yml:/app/config/fingerprint.yml
       - poirot_data:/app/data
+      - scanner_sources:/app/sources
       - ./config/.env:/app/.env
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - poirot-network
+      - hawk-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost/api/health"]
@@ -157,7 +161,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - poirot-network
+      - hawk-network
 
   localstack:
     image: localstack/localstack:2.2
@@ -177,7 +181,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - poirot-network
+      - hawk-network
 
   redpanda:
     image: redpandadata/redpanda:v23.3.21
@@ -200,7 +204,7 @@ services:
     ports:
       - "19092:19092"
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD-SHELL", "rpk cluster info --brokers localhost:9092 || exit 1"]
       interval: 10s
@@ -228,10 +232,12 @@ services:
       - S3_ENDPOINT=http://localstack:4566
       - S3_BUCKET=poc-bucket
       - KAFKA_BOOTSTRAP_SERVERS=redpanda:9092
+    volumes:
+      - scanner_sources:/app/sources
     command: python /app/demo_setup.py
     restart: "no"
     networks:
-      - poirot-network
+      - hawk-network
 
   # ============================================================================
   # ORACLE profile — Oracle XE 21c with synthetic PII
@@ -251,7 +257,7 @@ services:
     volumes:
       - oracle_data:/opt/oracle/oradata
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD-SHELL", "healthcheck.sh"]
       interval: 20s
@@ -275,10 +281,14 @@ services:
       - ORACLE_PASSWORD=${DEMO_ORACLE_APP_PASSWORD:-PoirotScan1}
     volumes:
       - ./scripts/oracle-seed.py:/app/oracle_seed.py
-    command: python /app/oracle_seed.py
+      - scanner_sources:/app/sources
+    command: >
+      sh -c "python /app/oracle_seed.py &&
+             mkdir -p /app/sources &&
+             echo 'SOURCE_ORACLE_DEMO={\"host\": \"oracle-xe\", \"password\": \"${DEMO_ORACLE_APP_PASSWORD:-PoirotScan1}\", \"port\": 1521, \"service_name\": \"XEPDB1\", \"user\": \"poirot\", \"connect_via\": \"service_name\"}' > /app/sources/oracle.env"
     restart: "no"
     networks:
-      - poirot-network
+      - hawk-network
 
   # ============================================================================
   # THEHIVE profile — TheHive 5 case management
@@ -296,7 +306,7 @@ services:
     volumes:
       - cassandra_data:/var/lib/cassandra
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1"]
       interval: 30s
@@ -316,7 +326,7 @@ services:
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 30s
@@ -342,7 +352,7 @@ services:
       - thehive_data:/opt/thehive/data
       - ./thehive-config/application.conf:/etc/thehive/application.conf:ro
     networks:
-      - poirot-network
+      - hawk-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:9000/api/v1/status | grep -qE '200|401'"]
@@ -367,7 +377,7 @@ services:
     environment:
       - OLLAMA_ORIGINS=*
     networks:
-      - poirot-network
+      - hawk-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
       interval: 30s
@@ -383,7 +393,7 @@ services:
       "
 
 networks:
-  poirot-network:
+  hawk-network:
     driver: bridge
 
 volumes:
@@ -396,3 +406,4 @@ volumes:
   elasticsearch_data:
   thehive_data:
   ollama_data:
+  scanner_sources:

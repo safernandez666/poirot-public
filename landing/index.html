@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poirot DSPM — Data Security Posture Management</title>
+  <meta name="description" content="Poirot DSPM scans your data sources to detect API keys, secrets, PII, and sensitive information. Open source Data Security Posture Management with AI classification.">
+  <meta name="keywords" content="DSPM, data security, secrets detection, PII detection, API keys, data classification, open source security">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Poirot DSPM — Data Security Posture Management">
+  <meta property="og:description" content="Open source DSPM that scans your data sources to detect secrets, PII, and sensitive information.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://poirotsecurity.com">
+  <meta property="og:image" content="https://poirotsecurity.com/og-image.png">
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Poirot DSPM — Data Security Posture Management">
+  <meta name="twitter:description" content="Open source DSPM that scans your data sources to detect secrets, PII, and sensitive information.">
+  <meta name="twitter:image" content="https://poirotsecurity.com/og-image.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300f0ff'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%23000'>P</text></svg>">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="logo">
+        <div class="logo-icon">P</div>
+        <span class="logo-text">Poirot</span>
+      </a>
+      <button class="nav-toggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <ul class="nav-menu">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#sources">Data Sources</a></li>
+        <li><a href="#integrations">Integrations</a></li>
+        <li><a href="#deployment">Deployment</a></li>
+        <li><a href="https://github.com/poirot-security/poirot" target="_blank" class="nav-github">GitHub</a></li>
+      </ul>
+      <a href="#get-started" class="btn btn-primary nav-cta">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Open Source DSPM
+        </div>
+        <h1 class="hero-title">
+          Know what's hiding in
+          <span class="gradient-text">your data</span>
+        </h1>
+        <p class="hero-subtitle">
+          Poirot scans your databases, cloud storage, and message queues to detect API keys, 
+          secrets, PII, and sensitive information before attackers do.
+        </p>
+        <div class="hero-cta">
+          <a href="#get-started" class="btn btn-primary btn-lg">
+            Get Started
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="#demo" class="btn btn-secondary btn-lg">View Demo</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-value">38+</div>
+            <div class="stat-label">Detection Patterns</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">6</div>
+            <div class="stat-label">Validators</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">60%</div>
+            <div class="stat-label">Less Noise</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="dashboard-preview">
+          <div class="dashboard-header">
+            <div class="dashboard-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="dashboard-title">Poirot Dashboard</div>
+          </div>
+          <div class="dashboard-content">
+            <div class="alert-card critical">
+              <div class="alert-severity">CRITICAL</div>
+              <div class="alert-pattern">AWS Access Key detected</div>
+              <div class="alert-location">s3://bucket/config.env</div>
+              <div class="alert-confidence">92% confidence</div>
+            </div>
+            <div class="alert-card high">
+              <div class="alert-severity">HIGH</div>
+              <div class="alert-pattern">Credit Card Number</div>
+              <div class="alert-location">mysql://users/table</div>
+              <div class="alert-confidence">87% confidence</div>
+            </div>
+            <div class="alert-card medium">
+              <div class="alert-severity">MEDIUM</div>
+              <div class="alert-pattern">JWT Token</div>
+              <div class="alert-location">kafka://topic/messages</div>
+              <div class="alert-confidence">76% confidence</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <div class="mouse"></div>
+    </div>
+  </section>
+
+  <!-- What is Poirot -->
+  <section class="section section-dark" id="what-is">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Data Security Posture Management</h2>
+        <p class="section-subtitle">
+          Poirot continuously monitors your data infrastructure to identify sensitive information 
+          exposure, misconfigurations, and compliance violations.
+        </p>
+      </div>
+      <div class="features-grid three-col">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <h3>Continuous Scanning</h3>
+          <p>Schedule automated scans or trigger on-demand. Monitor databases, cloud storage, and streaming platforms.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3>Secret Detection</h3>
+          <p>Find API keys, database passwords, tokens, and credentials buried in your datastores.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3>PII Discovery</h3>
+          <p>Detect personally identifiable information — credit cards, SSNs, emails, phone numbers, and more.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge">Features</div>
+        <h2 class="section-title">Built for modern security teams</h2>
+        <p class="section-subtitle">
+          Advanced detection capabilities with intelligent validation to minimize false positives.
+        </p>
+      </div>
+
+      <!-- Detection Patterns -->
+      <div class="feature-block">
+        <div class="feature-content">
+          <h3>38+ Detection Patterns</h3>
+          <p>Comprehensive coverage for secrets, credentials, and sensitive data types across your infrastructure.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> API Keys (AWS, Azure, GCP, GitHub, Stripe, etc.)</li>
+            <li><span class="check">✓</span> Database credentials (MySQL, PostgreSQL, MongoDB, Redis)</li>
+            <li><span class="check">✓</span> Authentication tokens (JWT, OAuth, API tokens)</li>
+            <li><span class="check">✓</span> Private keys (RSA, SSH, PEM)</li>
+            <li><span class="check">✓</span> PII (Credit cards, SSNs, emails, phone numbers)</li>
+            <li><span class="check">✓</span> Custom regex patterns</li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div class="patterns-grid">
+            <div class="pattern-tag">AWS Access Key</div>
+            <div class="pattern-tag">GitHub Token</div>
+            <div class="pattern-tag">Stripe Key</div>
+            <div class="pattern-tag">Slack Token</div>
+            <div class="pattern-tag">Private Key</div>
+            <div class="pattern-tag">JWT</div>
+            <div class="pattern-tag">Credit Card</div>
+            <div class="pattern-tag">SSN</div>
+            <div class="pattern-tag">Email</div>
+            <div class="pattern-tag">Password</div>
+            <div class="pattern-tag">API Secret</div>
+            <div class="pattern-tag">+27 more</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validators -->
+      <div class="feature-block reverse">
+        <div class="feature-content">
+          <h3>6 Post-Match Validators</h3>
+          <p>Reduce false positives by up to 60-70% with intelligent validation algorithms that verify pattern matches.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> <strong>Luhn Check</strong> — Validate credit card numbers</li>
+            <li><span class="check">✓</span> <strong>SSN Validator</strong> — Verify US Social Security Numbers</li>
+            <li><span class="check">✓</span> <strong>IBAN Check</strong> — Validate international bank accounts</li>
+            <li><span class="check">✓</span> <strong>Entropy Analysis</strong> — Detect high-randomness secrets</li>
+            <li><span class="check">✓</span> <strong>Base58 Decoder</strong> — Validate cryptocurrency addresses</li>
+            <li><span class="check">✓</span> <strong>DB Password Validator</strong> — Check password complexity</li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div class="validator-visual">
+            <div class="validator-flow">
+              <div class="validator-step">
+                <div class="step-icon">1</div>
+                <div class="step-label">Pattern Match</div>
+              </div>
+              <div class="validator-arrow">→</div>
+              <div class="validator-step">
+                <div class="step-icon">2</div>
+                <div class="step-label">Validation</div>
+              </div>
+              <div class="validator-arrow">→</div>
+              <div class="validator-step success">
+                <div class="step-icon">✓</div>
+                <div class="step-label">Confirmed</div>
+              </div>
+            </div>
+            <div class="confidence-badge">
+              <span class="confidence-value">94%</span>
+              <span class="confidence-label">Confidence Score</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confidence Scoring -->
+      <div class="feature-block">
+        <div class="feature-content">
+          <h3>Confidence Scoring</h3>
+          <p>Every finding receives a confidence score (0.0-1.0) based on validation results, context analysis, and pattern specificity.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> Filter by minimum confidence threshold</li>
+            <li><span class="check">✓</span> Sort findings by confidence level</li>
+            <li><span class="check">✓</span> Visual badges: High (≥80%), Medium (50-79%), Low (&lt;50%)</li>
+            <li><span class="check">✓</span> Focus on high-confidence alerts first</li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div class="confidence-chart">
+            <div class="confidence-bar high" style="--value: 67%;">
+              <span class="bar-label">High ≥80%</span>
+              <span class="bar-value">67%</span>
+            </div>
+            <div class="confidence-bar medium" style="--value: 28%;">
+              <span class="bar-label">Medium 50-79%</span>
+              <span class="bar-value">28%</span>
+            </div>
+            <div class="confidence-bar low" style="--value: 5%;">
+              <span class="bar-label">Low &lt;50%</span>
+              <span class="bar-value">5%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Classification -->
+      <div class="feature-block reverse">
+        <div class="feature-content">
+          <h3>AI Classification with Ollama</h3>
+          <p>Local LLM-powered classification that keeps your data private. No data ever leaves your infrastructure.</p>
+          <ul class="feature-list">
+            <li><span class="check">✓</span> <strong>100% Private</strong> — Local LLM, no cloud APIs</li>
+            <li><span class="check">✓</span> <strong>Contextual Analysis</strong> — Understands data context</li>
+            <li><span class="check">✓</span> <strong>Severity Assessment</strong> — AI-powered risk scoring</li>
+            <li><span class="check">✓</span> <strong>Custom Models</strong> — Use your own Ollama models</li>
+          </ul>
+        </div>
+        <div class="feature-visual">
+          <div class="ai-card">
+            <div class="ai-header">
+              <div class="ai-icon">🤖</div>
+              <div class="ai-title">AI Analysis</div>
+            </div>
+            <div class="ai-content">
+              <div class="ai-finding">
+                <div class="ai-label">Finding</div>
+                <div class="ai-value">AWS Access Key in production config</div>
+              </div>
+              <div class="ai-finding">
+                <div class="ai-label">Classification</div>
+                <div class="ai-value severity-critical">Critical — Production Credential Exposure</div>
+              </div>
+              <div class="ai-finding">
+                <div class="ai-label">Recommendation</div>
+                <div class="ai-value">Rotate credentials immediately. Move to secrets manager.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Data Sources -->
+  <section class="section section-dark" id="sources">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge">Data Sources</div>
+        <h2 class="section-title">Connect your data infrastructure</h2>
+        <p class="section-subtitle">
+          Scan databases, cloud storage, streaming platforms, and file systems.
+        </p>
+      </div>
+      <div class="sources-grid">
+        <div class="source-card">
+          <div class="source-icon mysql">🐬</div>
+          <h4>MySQL</h4>
+          <p>Relational databases</p>
+        </div>
+        <div class="source-card">
+          <div class="source-icon postgres">🐘</div>
+          <h4>PostgreSQL</h4>
+          <p>Advanced relational DB</p>
+        </div>
+        <div class="source-card">
+          <div class="source-icon oracle">🟠</div>
+          <h4>Oracle</h4>
+          <p>Enterprise databases</p>
+        </div>
+        <div class="source-card">
+          <div class="source-icon s3">🪣</div>
+          <h4>AWS S3</h4>
+          <p>Object storage</p>
+        </div>
+        <div class="source-card">
+          <div class="source-icon kafka">📊</div>
+          <h4>Kafka</h4>
+          <p>Stream processing</p>
+        </div>
+        <div class="source-card">
+          <div class="source-icon gdrive">📁</div>
+          <h4>Google Drive</h4>
+          <p>Cloud file storage</p>
+        </div>
+        <div class="source-card">
+          <div class="source-icon onedrive">☁️</div>
+          <h4>OneDrive</h4>
+          <p>Microsoft cloud storage</p>
+        </div>
+        <div class="source-card">
+          <div class="source-icon more">+</div>
+          <h4>More</h4>
+          <p>Coming soon</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integrations -->
+  <section class="section" id="integrations">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge">Integrations</div>
+        <h2 class="section-title">Works with your security stack</h2>
+        <p class="section-subtitle">
+          Seamlessly integrate with SOAR platforms, notification channels, and identity providers.
+        </p>
+      </div>
+      <div class="integrations-grid">
+        <div class="integration-card">
+          <div class="integration-icon thehive">🐝</div>
+          <h4>TheHive</h4>
+          <p>SOAR case management with automatic case creation and bidirectional sync</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon keycloak">🔐</div>
+          <h4>Keycloak</h4>
+          <p>SSO and RBAC with realm support, group mapping, and secure token validation</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon ollama">🦙</div>
+          <h4>Ollama</h4>
+          <p>Local LLM for AI classification with privacy-first architecture</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon pagerduty">🚨</div>
+          <h4>PagerDuty</h4>
+          <p>Incident management with severity-based alerting and on-call routing</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon slack">💬</div>
+          <h4>Slack</h4>
+          <p>Real-time notifications with severity filtering and channel routing</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon teams">👥</div>
+          <h4>Microsoft Teams</h4>
+          <p>Enterprise notifications with adaptive cards and mentions</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon email">✉️</div>
+          <h4>Email (SMTP)</h4>
+          <p>Configurable email alerts with HTML templates and severity filtering</p>
+        </div>
+        <div class="integration-card">
+          <div class="integration-icon webhook">🔌</div>
+          <h4>Webhook</h4>
+          <p>Custom HTTP callbacks for any integration with signature verification</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scan Comparison -->
+  <section class="section section-gradient" id="comparison">
+    <div class="container">
+      <div class="section-header light">
+        <div class="section-badge light">Results</div>
+        <h2 class="section-title light">Before vs After</h2>
+        <p class="section-subtitle light">
+          See the impact of confidence scoring and multi-layer validation on your detection accuracy.
+        </p>
+      </div>
+      <div class="comparison-container">
+        <div class="comparison-before">
+          <div class="comparison-label">Before</div>
+          <div class="comparison-metric">
+            <div class="metric-value">641</div>
+            <div class="metric-label">Total Findings</div>
+          </div>
+          <div class="comparison-metric">
+            <div class="metric-value">184</div>
+            <div class="metric-label">False Positives</div>
+          </div>
+          <div class="comparison-bar">
+            <div class="bar-fill" style="width: 100%"></div>
+          </div>
+        </div>
+        <div class="comparison-arrow">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+        <div class="comparison-after">
+          <div class="comparison-label">After</div>
+          <div class="comparison-metric">
+            <div class="metric-value highlight">180</div>
+            <div class="metric-label">Total Findings</div>
+          </div>
+          <div class="comparison-metric">
+            <div class="metric-value highlight">9</div>
+            <div class="metric-label">False Positives</div>
+          </div>
+          <div class="comparison-bar">
+            <div class="bar-fill highlight" style="width: 28%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="comparison-stats">
+        <div class="comp-stat">
+          <div class="comp-stat-value">72%</div>
+          <div class="comp-stat-label">Reduction in noise</div>
+        </div>
+        <div class="comp-stat">
+          <div class="comp-stat-value">95%</div>
+          <div class="comp-stat-label">Fewer false positives</div>
+        </div>
+        <div class="comp-stat">
+          <div class="comp-stat-value">111%</div>
+          <div class="comp-stat-label">More patterns</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deployment -->
+  <section class="section section-dark" id="deployment">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge">Deployment</div>
+        <h2 class="section-title">Deploy anywhere</h2>
+        <p class="section-subtitle">
+          Self-hosted, open source, and ready for any environment.
+        </p>
+      </div>
+      <div class="deployment-options">
+        <div class="deploy-card">
+          <div class="deploy-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+              <line x1="6" y1="6" x2="6.01" y2="6"/>
+              <line x1="6" y1="18" x2="6.01" y2="18"/>
+            </svg>
+          </div>
+          <h3>Docker Compose</h3>
+          <p>Single command deployment with all services included</p>
+          <code class="deploy-code">docker compose up -d</code>
+        </div>
+        <div class="deploy-card">
+          <div class="deploy-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h3>Kubernetes</h3>
+          <p>Production-ready manifests for K8s deployment</p>
+          <code class="deploy-code">kubectl apply -f k8s/</code>
+        </div>
+        <div class="deploy-card">
+          <div class="deploy-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </div>
+          <h3>Helm</h3>
+          <p>Configurable charts for flexible deployments</p>
+          <code class="deploy-code">helm install poirot ./helm</code>
+        </div>
+      </div>
+      <div class="deploy-cta">
+        <a href="https://github.com/poirot-security/poirot" target="_blank" class="btn btn-primary btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="section section-cta" id="get-started">
+    <div class="container">
+      <div class="cta-content">
+        <h2 class="cta-title">Ready to secure your data?</h2>
+        <p class="cta-subtitle">
+          Join thousands of security teams using Poirot to discover and protect sensitive information.
+        </p>
+        <div class="cta-buttons">
+          <a href="https://github.com/poirot-security/poirot" target="_blank" class="btn btn-primary btn-xl">
+            Get Started
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          <a href="#demo" class="btn btn-secondary btn-xl">Request Demo</a>
+        </div>
+        <p class="cta-note">Open source • Self-hosted • Free forever</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="logo">
+            <div class="logo-icon">P</div>
+            <span class="logo-text">Poirot</span>
+          </a>
+          <p class="footer-tagline">
+            Open source Data Security Posture Management. Scan, detect, and protect your sensitive data.
+          </p>
+          <div class="footer-social">
+            <a href="https://github.com/poirot-security/poirot" target="_blank" aria-label="GitHub">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#sources">Data Sources</a></li>
+            <li><a href="#integrations">Integrations</a></li>
+            <li><a href="#deployment">Deployment</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="https://docs.poirotsecurity.com" target="_blank">Documentation</a></li>
+            <li><a href="https://github.com/poirot-security/poirot" target="_blank">GitHub</a></li>
+            <li><a href="#demo">Request Demo</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:hello@poirotsecurity.com">hello@poirotsecurity.com</a></li>
+            <li><a href="https://twitter.com/poirotsecurity" target="_blank">Twitter</a></li>
+            <li><a href="https://linkedin.com/company/poirotsecurity" target="_blank">LinkedIn</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 Poirot Security. Open source under MIT License.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
