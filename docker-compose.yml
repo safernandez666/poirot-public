@@ -117,7 +117,7 @@ services:
       - FINGERPRINT_PATH=/app/config/fingerprint.yml
       - CONNECTION_PATH=/app/config/connection.yml
       - FLASK_DEBUG=false
-      - AUTH_ENABLED=${AUTH_ENABLED:-false}
+      - AUTH_ENABLED=${AUTH_ENABLED:-true}
       - KEYCLOAK_URL=http://keycloak:8080
       - KEYCLOAK_REALM=poirot
       - KEYCLOAK_CLIENT_ID=poirot-api
