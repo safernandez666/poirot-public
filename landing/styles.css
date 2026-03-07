@@ -1423,6 +1423,12 @@ img {
   gap: 16px;
 }
 
+.footer-social {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
 .footer-social a {
   color: var(--color-text-muted);
   transition: color var(--transition-fast);
@@ -1430,6 +1436,25 @@ img {
 
 .footer-social a:hover {
   color: var(--color-primary);
+}
+
+.report-issue-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  transition: all var(--transition-fast);
+}
+
+.report-issue-link:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  transform: translateY(-2px);
 }
 
 .footer-links h4 {
@@ -1499,4 +1524,49 @@ img {
 .reveal.active {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ============================================
+   Floating Report Issue Button
+   ============================================ */
+
+.floating-report-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+  transition: all var(--transition-base);
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.floating-report-btn:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.5);
+}
+
+.floating-report-btn svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .floating-report-btn {
+    padding: 12px;
+    border-radius: 50%;
+  }
+  
+  .floating-report-btn span {
+    display: none;
+  }
 }
