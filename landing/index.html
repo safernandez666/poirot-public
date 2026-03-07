@@ -21,7 +21,7 @@
   <meta name="twitter:image" content="https://poirotsecurity.com/og-image.png">
   
   <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2300f0ff'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='%23000'>P</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' style='stop-color:%2300f0ff;stop-opacity:0.2'/><stop offset='100%25' style='stop-color:%2300c4cc;stop-opacity:0.1'/></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23g)' stroke='%2300f0ff' stroke-width='3'/><path d='M50 15 L75 25 L75 50 Q75 70 50 85 Q25 70 25 50 L25 25 Z' fill='none' stroke='%2300f0ff' stroke-width='6' stroke-linejoin='round'/></svg>">
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +36,11 @@
   <nav class="navbar">
     <div class="container nav-container">
       <a href="#" class="logo">
-        <div class="logo-icon">P</div>
+        <div class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
         <span class="logo-text">Poirot</span>
       </a>
       <button class="nav-toggle" aria-label="Toggle navigation">
@@ -274,18 +278,56 @@
           </ul>
         </div>
         <div class="feature-visual">
-          <div class="confidence-chart">
-            <div class="confidence-bar high" style="--value: 67%;">
-              <span class="bar-label">High ≥80%</span>
-              <span class="bar-value">67%</span>
+          <div class="confidence-cards">
+            <div class="confidence-card high">
+              <div class="confidence-header">
+                <div class="confidence-badge-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                </div>
+                <span class="confidence-level">High Confidence</span>
+              </div>
+              <div class="confidence-value-large">67%</div>
+              <div class="confidence-range">≥ 80% confidence score</div>
+              <div class="confidence-bar-track">
+                <div class="confidence-bar-fill" style="width: 67%"></div>
+              </div>
             </div>
-            <div class="confidence-bar medium" style="--value: 28%;">
-              <span class="bar-label">Medium 50-79%</span>
-              <span class="bar-value">28%</span>
+            <div class="confidence-card medium">
+              <div class="confidence-header">
+                <div class="confidence-badge-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </div>
+                <span class="confidence-level">Medium Confidence</span>
+              </div>
+              <div class="confidence-value-large">28%</div>
+              <div class="confidence-range">50-79% confidence score</div>
+              <div class="confidence-bar-track">
+                <div class="confidence-bar-fill" style="width: 28%"></div>
+              </div>
             </div>
-            <div class="confidence-bar low" style="--value: 5%;">
-              <span class="bar-label">Low &lt;50%</span>
-              <span class="bar-value">5%</span>
+            <div class="confidence-card low">
+              <div class="confidence-header">
+                <div class="confidence-badge-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <span class="confidence-level">Low Confidence</span>
+              </div>
+              <div class="confidence-value-large">5%</div>
+              <div class="confidence-range">&lt; 50% confidence score</div>
+              <div class="confidence-bar-track">
+                <div class="confidence-bar-fill" style="width: 5%"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -588,7 +630,11 @@
       <div class="footer-grid">
         <div class="footer-brand">
           <a href="#" class="logo">
-            <div class="logo-icon">P</div>
+            <div class="logo-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
             <span class="logo-text">Poirot</span>
           </a>
           <p class="footer-tagline">
