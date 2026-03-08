@@ -60,18 +60,32 @@ printf '\n'
 
 # ─── 1. Clear SQLite database ────────────────────────────────────────────────
 printf '[1/4] Clearing alerts database...\n'
-if [ -f "$DB_PATH" ]; then
+
+# Detect if DB is accessible: prefer Docker container, fall back to local file
+DB_AVAILABLE=false
+if docker ps 2>/dev/null | grep -q 'hawk-dashboard\|hawk-scanner'; then
+    DB_AVAILABLE=true
+elif [ -f "$DB_PATH" ]; then
+    DB_AVAILABLE=true
+fi
+
+if [ "$DB_AVAILABLE" = true ]; then
     ALERT_COUNT=$(_sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM alerts;" 2>/dev/null || printf '0')
     SCAN_COUNT=$(_sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM scan_runs;" 2>/dev/null || printf '0')
+    SNAPSHOT_COUNT=$(_sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM scan_snapshots;" 2>/dev/null || printf '0')
     printf '  Alerts found: %s\n' "$ALERT_COUNT"
     printf '  Scan runs found: %s\n' "$SCAN_COUNT"
+    printf '  Snapshots found: %s\n' "$SNAPSHOT_COUNT"
     _sqlite3 "$DB_PATH" "DELETE FROM alerts;" 2>/dev/null || true
     _sqlite3 "$DB_PATH" "DELETE FROM sqlite_sequence WHERE name='alerts';" 2>/dev/null || true
     _sqlite3 "$DB_PATH" "DELETE FROM scan_runs;" 2>/dev/null || true
     _sqlite3 "$DB_PATH" "DELETE FROM sqlite_sequence WHERE name='scan_runs';" 2>/dev/null || true
+    _sqlite3 "$DB_PATH" "DELETE FROM scan_snapshots;" 2>/dev/null || true
+    _sqlite3 "$DB_PATH" "DELETE FROM sqlite_sequence WHERE name='scan_snapshots';" 2>/dev/null || true
     printf '  ✅ Database cleared\n'
 else
-    printf '  ⚠️  Not found: %s\n' "$DB_PATH"
+    printf '  ⚠️  No running container found and local DB not found: %s\n' "$DB_PATH"
+    printf '      Make sure containers are running: docker compose up -d\n'
 fi
 
 printf '\n'
@@ -166,7 +180,7 @@ printf '\n'
 
 # ─── 4. Clear thehive_case_id references in DB ───────────────────────────────
 printf '[4/4] Clearing TheHive references in DB...\n'
-if [ -f "$DB_PATH" ]; then
+if [ "$DB_AVAILABLE" = true ]; then
     _sqlite3 "$DB_PATH" \
         "UPDATE alerts SET thehive_case_id=NULL, thehive_status=NULL WHERE thehive_case_id IS NOT NULL;" \
         2>/dev/null || true
@@ -181,6 +195,7 @@ printf '\n'
 printf 'Summary:\n'
 printf '  - Alerts deleted:     %s\n' "$ALERT_COUNT"
 printf '  - Scan runs deleted:  %s\n' "$SCAN_COUNT"
+printf '  - Snapshots deleted:  %s\n' "${SNAPSHOT_COUNT:-0}"
 printf '  - TheHive cases deleted: %s\n' "$CASES_DELETED"
 printf '  - Temp files: cleared\n'
 printf '\n'
