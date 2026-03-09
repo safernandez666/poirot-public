@@ -1,0 +1,116 @@
+{{- if .Values.keycloak.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    app: keycloak
+    {{- include "poirot.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.keycloak.replicas }}
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: {{ .Values.keycloak.image }}
+          args:
+            - start-dev
+            - --import-realm
+            - --health-enabled=true
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: poirot-secret
+                  key: KC_ADMIN_USER
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: poirot-secret
+                  key: KC_ADMIN_PASSWORD
+            - name: KC_DB
+              value: dev-file
+            - name: KC_HOSTNAME
+              valueFrom:
+                secretKeyRef:
+                  name: poirot-secret
+                  key: KEYCLOAK_PUBLIC_URL
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HTTP_PORT
+              value: "8080"
+            - name: KC_PROXY_HEADERS
+              value: xforwarded
+            - name: KC_SSL_REQUIRED
+              valueFrom:
+                secretKeyRef:
+                  name: poirot-secret
+                  key: KC_SSL_REQUIRED
+          volumeMounts:
+            - name: realm-import
+              mountPath: /opt/keycloak/data/import/poirot-realm.json
+              subPath: poirot-realm.json
+              readOnly: true
+            - name: theme-login-css
+              mountPath: /opt/keycloak/themes/poirot/login/resources/css/login.css
+              subPath: login.css
+              readOnly: true
+            - name: keycloak-data
+              mountPath: /opt/keycloak/data
+          livenessProbe:
+            httpGet:
+              path: /realms/master
+              port: 8080
+            initialDelaySeconds: {{ .Values.keycloak.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.keycloak.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.keycloak.livenessProbe.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /realms/master
+              port: 8080
+            initialDelaySeconds: {{ .Values.keycloak.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.keycloak.readinessProbe.periodSeconds }}
+          resources:
+            requests:
+              memory: {{ .Values.keycloak.resources.requests.memory | quote }}
+              cpu: {{ .Values.keycloak.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.keycloak.resources.limits.memory | quote }}
+              cpu: {{ .Values.keycloak.resources.limits.cpu | quote }}
+      volumes:
+        - name: realm-import
+          configMap:
+            name: poirot-keycloak-realm
+        - name: theme-login-css
+          configMap:
+            name: poirot-keycloak-theme
+        - name: keycloak-data
+          persistentVolumeClaim:
+            claimName: keycloak-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    app: keycloak
+    {{- include "poirot.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: keycloak
+  ports:
+    - name: http
+      port: {{ .Values.keycloak.service.port }}
+      targetPort: 8080
+{{- end }}

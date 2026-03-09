@@ -1,32 +1,52 @@
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "poirot.fullname" . }}-data
-  namespace: {{ .Values.namespace.name }}
-  labels: {{ include "poirot.labels" . | nindent 4 }}
+  name: poirot-data
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    {{- include "poirot.labels" . | nindent 4 }}
 spec:
   accessModes:
     - {{ .Values.persistence.data.accessMode }}
+  {{- if .Values.persistence.data.storageClass }}
+  storageClassName: {{ .Values.persistence.data.storageClass }}
+  {{- end }}
   resources:
     requests:
       storage: {{ .Values.persistence.data.size }}
-  {{- if .Values.persistence.data.storageClassName }}
-  storageClassName: {{ .Values.persistence.data.storageClassName }}
-  {{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "poirot.fullname" . }}-config
-  namespace: {{ .Values.namespace.name }}
-  labels: {{ include "poirot.labels" . | nindent 4 }}
+  name: poirot-config
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    {{- include "poirot.labels" . | nindent 4 }}
 spec:
   accessModes:
     - {{ .Values.persistence.config.accessMode }}
+  {{- if .Values.persistence.config.storageClass }}
+  storageClassName: {{ .Values.persistence.config.storageClass }}
+  {{- end }}
   resources:
     requests:
       storage: {{ .Values.persistence.config.size }}
-  {{- if .Values.persistence.config.storageClassName }}
-  storageClassName: {{ .Values.persistence.config.storageClassName }}
+---
+{{- if .Values.keycloak.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: keycloak-data
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    {{- include "poirot.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.keycloak.accessMode }}
+  {{- if .Values.persistence.keycloak.storageClass }}
+  storageClassName: {{ .Values.persistence.keycloak.storageClass }}
   {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.keycloak.size }}
+{{- end }}

@@ -1,51 +1,34 @@
-Poirot DSPM has been deployed successfully!
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- ACCESS THE DASHBOARD
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Poirot DSPM has been installed!
 
-{{- if .Values.ingress.enabled }}
-  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}
-
-{{- else if eq .Values.dashboard.service.type "NodePort" }}
-  Get your node IP and open:
-  http://<NODE-IP>:{{ .Values.dashboard.service.nodePort }}
-
-  To find a node IP:
-    kubectl get nodes -o wide -n {{ .Values.namespace.name }}
-
+1. Access the dashboard:
+{{- if eq .Values.dashboard.service.type "NodePort" }}
+   minikube service dashboard -n {{ include "poirot.namespace" . }}
+   # or: http://<NodeIP>:{{ .Values.dashboard.service.nodePort }}
+{{- else if .Values.ingress.enabled }}
+   http://{{ .Values.ingress.host }}
 {{- else }}
-  Forward the port locally:
-    kubectl port-forward svc/{{ include "poirot.fullname" . }}-dashboard 8080:80 -n {{ .Values.namespace.name }}
-  Then open: http://localhost:8080
+   kubectl port-forward svc/dashboard 8080:80 -n {{ include "poirot.namespace" . }}
+   # then: http://localhost:8080
 {{- end }}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- ADDING DATA SOURCES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{{- if .Values.keycloak.enabled }}
 
-  Option A — from the UI:  navigate to /sources in the dashboard.
+2. Keycloak admin console:
+   kubectl port-forward svc/keycloak 8180:8080 -n {{ include "poirot.namespace" . }}
+   # then: http://localhost:8180
+   # Admin: {{ .Values.auth.kcAdminUser }} / {{ .Values.auth.kcAdminPassword }}
 
-  Option B — via Helm values (sources persist across upgrades):
+   Pre-created users (poirot realm):
+   - poirot-admin / admin (admin role)
+   - admin-user / Test1234! (admin role)
+   - analyst-user / Test1234! (analyst role)
+   - viewer-user / Test1234! (viewer role)
+{{- end }}
 
-    sources:
-      mysql:
-        prod:
-          host: db.example.com
-          port: 3306
-          user: scanner
-          password: secret
-          database: prod
+3. Run a scan:
+   curl -X POST http://<dashboard-url>/api/scanner/run
 
-    helm upgrade {{ .Release.Name }} ./helm/poirot -n {{ .Values.namespace.name }} -f my-values.yaml
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- USEFUL COMMANDS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Logs:
-    kubectl logs -f deployment/{{ include "poirot.fullname" . }}-dashboard -n {{ .Values.namespace.name }}
-    kubectl logs -f deployment/{{ include "poirot.fullname" . }}-scanner   -n {{ .Values.namespace.name }}
-
-  Status:
-    kubectl get all -n {{ .Values.namespace.name }}
+4. View logs:
+   kubectl logs -f deployment/dashboard -n {{ include "poirot.namespace" . }}
+   kubectl logs -f deployment/hawk-scanner -n {{ include "poirot.namespace" . }}

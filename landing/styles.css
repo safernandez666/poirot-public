@@ -78,6 +78,33 @@ img {
   height: auto;
 }
 
+/* Skip Link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: var(--color-primary);
+  color: var(--color-bg);
+  font-weight: 600;
+  font-size: 14px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  z-index: 9999;
+  transition: top 0.3s ease;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: none;
+}
+
+.skip-link:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
 /* Container */
 .container {
   width: 100%;
@@ -155,6 +182,13 @@ img {
   font-weight: 500;
   color: var(--color-text-muted);
   transition: color var(--transition-fast);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.nav-menu a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .nav-menu a:hover {
@@ -178,7 +212,17 @@ img {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 8px;
+  padding: 12px;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .nav-toggle span {
@@ -222,6 +266,11 @@ img {
   cursor: pointer;
   transition: all var(--transition-base);
   white-space: nowrap;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
 }
 
 .btn-primary {
@@ -374,6 +423,7 @@ img {
   font-weight: 800;
   color: var(--color-primary);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
@@ -670,6 +720,12 @@ img {
   transform: translateY(-4px);
 }
 
+.feature-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
+
 .feature-icon {
   width: 56px;
   height: 56px;
@@ -794,6 +850,12 @@ img {
 .pattern-tag:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.pattern-tag:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 100px;
 }
 
 /* Validator Visual */
@@ -1084,6 +1146,12 @@ img {
   transform: translateY(-4px);
 }
 
+.source-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
+
 .source-icon {
   font-size: 32px;
   margin-bottom: 12px;
@@ -1133,6 +1201,12 @@ img {
 .integration-card:hover {
   background: var(--color-bg-card);
   border-color: var(--color-border-light);
+}
+
+.integration-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
 }
 
 .integration-icon {
@@ -1300,6 +1374,12 @@ img {
   background: var(--color-bg-card);
 }
 
+.deploy-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
+
 .deploy-icon {
   width: 64px;
   height: 64px;
@@ -1432,6 +1512,17 @@ img {
 .footer-social a {
   color: var(--color-text-muted);
   transition: color var(--transition-fast);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+
+.footer-social a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .footer-social a:hover {
@@ -1457,6 +1548,11 @@ img {
   transform: translateY(-2px);
 }
 
+.report-issue-link:focus-visible {
+  outline: 2px solid #ef4444;
+  outline-offset: 3px;
+}
+
 .footer-links h4 {
   font-size: 14px;
   font-weight: 700;
@@ -1475,6 +1571,14 @@ img {
   font-size: 15px;
   color: var(--color-text-muted);
   transition: color var(--transition-fast);
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: var(--radius-sm);
+}
+
+.footer-links a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .footer-links a:hover {
@@ -1554,6 +1658,11 @@ img {
   background: rgba(239, 68, 68, 1);
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(239, 68, 68, 0.5);
+}
+
+.floating-report-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
 .floating-report-btn svg {

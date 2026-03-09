@@ -1,0 +1,61 @@
+{{/*
+ConfigMaps for Poirot config files.
+
+When installing from source (the repo), these are populated by the
+post-install hook or manually via:
+  kubectl create configmap poirot-fingerprint --from-file=fingerprint.yml=hawk-scanner/fingerprint.yml -n poirot
+  kubectl create configmap poirot-connection-seed --from-file=connection.yml=hawk-scanner/connection.yml -n poirot
+  kubectl create configmap poirot-scripts --from-file=notification_manager.py=hawk-scanner/notification_manager.py -n poirot
+  kubectl create configmap poirot-keycloak-realm --from-file=poirot-realm.json=keycloak/poirot-realm.json -n poirot
+  kubectl create configmap poirot-keycloak-theme --from-file=login.css=keycloak/themes/poirot/login/resources/css/login.css -n poirot
+
+Helm cannot include files outside the chart directory, so we create empty
+placeholder ConfigMaps here. The install script (install.sh) populates them
+from repo files before helm install.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poirot-fingerprint
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    {{- include "poirot.labels" . | nindent 4 }}
+data: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poirot-connection-seed
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    {{- include "poirot.labels" . | nindent 4 }}
+data: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poirot-scripts
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    {{- include "poirot.labels" . | nindent 4 }}
+data: {}
+---
+{{- if .Values.keycloak.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poirot-keycloak-realm
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    {{- include "poirot.labels" . | nindent 4 }}
+data: {}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: poirot-keycloak-theme
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    {{- include "poirot.labels" . | nindent 4 }}
+data: {}
+{{- end }}

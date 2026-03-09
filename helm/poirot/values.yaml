@@ -1,74 +1,50 @@
-nameOverride: ""
-fullnameOverride: ""
+# ── Poirot Helm Chart — Default Values ────────────────────────────────────────
 
-namespace:
-  create: true
-  name: poirot
+# -- Global settings
+namespace: poirot
 
-# ── Images ────────────────────────────────────────────────────────────────────
-scanner:
-  image:
-    repository: ghcr.io/safernandez666/poirot-scanner
-    tag: latest
-    pullPolicy: Always
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "100m"
-    limits:
-      memory: "512Mi"
-      cpu: "500m"
-
+# -- Dashboard (Flask API + Next.js frontend served by nginx)
 dashboard:
-  image:
-    repository: ghcr.io/safernandez666/poirot-dashboard
-    tag: latest
-    pullPolicy: Always
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "100m"
-    limits:
-      memory: "512Mi"
-      cpu: "500m"
+  image: ghcr.io/safernandez666/poirot-dashboard:latest
+  replicas: 1
   service:
     type: NodePort
     port: 80
-    nodePort: 30080   # only used when type=NodePort
+    nodePort: 30080
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  livenessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    failureThreshold: 3
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
 
-# ── Ingress ───────────────────────────────────────────────────────────────────
-ingress:
-  enabled: false
-  className: "nginx"
-  host: poirot.example.com
-  tls:
-    enabled: false
-    secretName: ""
+# -- Hawk Scanner (kept alive for ad-hoc kubectl exec scans)
+scanner:
+  image: ghcr.io/safernandez666/poirot-scanner:latest
+  replicas: 1
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
 
-# ── Persistence ───────────────────────────────────────────────────────────────
-# ⚠  ReadWriteOnce requires both pods on the same node.
-#    For multi-node clusters set accessMode: ReadWriteMany and use an RWX StorageClass.
-persistence:
-  data:
-    size: 2Gi
-    storageClassName: ""    # leave empty to use cluster default
-    accessMode: ReadWriteOnce
-  config:
-    size: 256Mi
-    storageClassName: ""
-    accessMode: ReadWriteOnce
-
-# ── Keycloak / Auth ───────────────────────────────────────────────────────
+# -- Keycloak (IAM / SSO)
 keycloak:
   enabled: true
-  image:
-    repository: quay.io/keycloak/keycloak
-    tag: "26.1"
-    pullPolicy: IfNotPresent
-  adminUser: admin
-  adminPassword: admin
-  publicUrl: "http://localhost:8180"    # external URL users hit in the browser
-  sslRequired: "none"                   # set to "external" in production
+  image: quay.io/keycloak/keycloak:26.1
+  replicas: 1
+  service:
+    port: 8080
   resources:
     requests:
       memory: "512Mi"
@@ -76,93 +52,93 @@ keycloak:
     limits:
       memory: "1Gi"
       cpu: "1000m"
-  persistence:
-    size: 1Gi
-    storageClassName: ""
+  livenessProbe:
+    initialDelaySeconds: 120
+    periodSeconds: 30
+    failureThreshold: 5
+  readinessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+# -- Persistent Volume Claims
+persistence:
+  data:
+    size: 2Gi
     accessMode: ReadWriteOnce
+    storageClass: ""       # leave empty for cluster default
+  config:
+    size: 256Mi
+    accessMode: ReadWriteOnce
+    storageClass: ""
+  keycloak:
+    size: 1Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""
 
+# -- Ingress (disabled by default — NodePort is the default access method)
+ingress:
+  enabled: false
+  className: nginx
+  host: poirot.example.com
+  annotations: {}
+  tls: []
+
+# -- Auth / Keycloak config
 auth:
-  enabled: true
-  keycloakUrl: "http://keycloak:8080"   # internal Service URL
-  realm: poirot
-  clientId: poirot-api
+  enabled: "true"
+  kcAdminUser: admin
+  kcAdminPassword: admin
+  keycloakUrl: "http://keycloak:8080"
+  keycloakRealm: poirot
+  keycloakClientId: poirot-api
+  keycloakPublicUrl: "http://localhost:8180"    # change for production
+  kcSslRequired: "none"                          # "external" for production
 
-# ── Docker socket ─────────────────────────────────────────────────────────────
-# NOT required in Kubernetes — the dashboard bundles the scanner and runs scans
-# as a local subprocess (auto-detected via KUBERNETES_SERVICE_HOST).
-# Only enable for Docker Compose deployments using `docker exec`.
-dockerSocket:
-  enabled: false
-  path: /var/run/docker.sock
+# -- Notifications (all disabled by default)
+notifications:
+  slack:
+    enabled: "false"
+    webhookUrl: ""
+  smtp:
+    enabled: "false"
+    host: "smtp.gmail.com"
+    port: "587"
+    useTls: "true"
+    username: ""
+    password: ""
+    fromAddress: ""
+    fromName: "Poirot Security"
+    toAddresses: ""
+    emailTheme: "dark_cyber"
+  thehive:
+    enabled: "false"
+    apiKey: ""
+    url: "http://thehive:9000"
 
-# ── Notifications ─────────────────────────────────────────────────────────────
-slack:
-  enabled: false
-  webhookUrl: ""
+# -- AI / Ollama
+ai:
+  provider: "ollama"           # "ollama" or "openrouter"
+  ollama:
+    enabled: "false"
+    url: "http://ollama:11434"
+    model: "llama3.2:3b"
+  openrouter:
+    apiKey: ""
+    model: "openrouter/auto"
 
-smtp:
-  enabled: false
-  host: "smtp.gmail.com"
-  port: 587
-  useTls: "true"
-  username: ""
-  password: ""
-  fromAddress: ""
-  fromName: "Poirot Security"
-  toAddresses: ""
-  emailTheme: "dark_cyber"
+# -- Data Sources (JSON-encoded — uncomment and fill in values.yaml or use --set)
+# Format: SOURCE_<TYPE>_<NAME>: '<JSON>'
+dataSources: {}
+  # SOURCE_KAFKA_DEMO: '{"bootstrap_servers":"redpanda:9092","topics":"transactions","max_messages":"500","group_id":"poirot-scanner"}'
+  # SOURCE_MYSQL_PROD: '{"host":"db.example.com","port":3306,"user":"scanner","password":"s3cr3t","database":"prod"}'
+  # SOURCE_S3_MAIN: '{"access_key":"AKIA...","secret_key":"...","bucket_name":"my-bucket","region":"us-east-1"}'
 
-thehive:
-  enabled: false
-  url: "http://thehive:9000"
-  apiKey: ""
-
-ollama:
-  enabled: false
-  url: "http://ollama:11434"
-  model: "llama3.2:3b"
-
-# ── Data Sources ──────────────────────────────────────────────────────────────
-# Each entry generates a SOURCE_<TYPE>_<NAME> environment variable.
-# The key structure is:  sources.<type>.<name>: { ...config }
-#
-# Examples:
-#
-# sources:
-#   mysql:
-#     prod:
-#       host: db.example.com
-#       port: 3306
-#       user: scanner
-#       password: secret
-#       database: prod
-#   s3:
-#     main:
-#       access_key: "AKIA..."
-#       secret_key: "..."
-#       bucket_name: my-bucket
-#       region: us-east-1
-#   kafka:
-#     events:
-#       bootstrap_servers: kafka.example.com:9092
-#       topics: transactions,logs
-#       max_messages: "1000"
-#       group_id: poirot-scanner
-#   oracle:
-#     dw:
-#       host: oracle.example.com
-#       port: 1521
-#       user: scanner
-#       password: secret
-#       service_name: ORCLPDB1
-#   gdrive:
-#     shared:
-#       credentials_json: /secrets/gdrive.json
-#       folder_id: "1AbC..."
-#   onedrive:
-#     corp:
-#       tenant_id: "..."
-#       client_id: "..."
-#       client_secret: "..."
-#       drive_id: "..."
-sources: {}
+# -- ConfigMap file paths (relative to chart root or absolute)
+# These are used by the configmap-files template.
+# If installing from k8s/charts/poirot/, defaults point to repo root files.
+configFiles:
+  fingerprintYml: ""       # auto-detected from repo layout
+  connectionYml: ""
+  notificationManagerPy: ""
+  realmJson: ""
+  loginCss: ""

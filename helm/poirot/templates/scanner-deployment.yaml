@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hawk-scanner
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    app: hawk-scanner
+    {{- include "poirot.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.scanner.replicas }}
+  selector:
+    matchLabels:
+      app: hawk-scanner
+  template:
+    metadata:
+      labels:
+        app: hawk-scanner
+    spec:
+      initContainers:
+        - name: init-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /config/connection.yml ]; then
+                echo "Seeding connection.yml..."
+                cp /seed/connection.yml /config/connection.yml
+              fi
+              if [ ! -f /config/.env ]; then
+                echo "Seeding .env..."
+                env | grep -E "^(SLACK_|SMTP_|THEHIVE_|OLLAMA_|SOURCE_)" \
+                  | awk -F= 'BEGIN{OFS="="} {val=substr($0,index($0,"=")+1); print $1, val}' \
+                  > /config/.env
+              fi
+          envFrom:
+            - secretRef:
+                name: poirot-secret
+          volumeMounts:
+            - name: poirot-config
+              mountPath: /config
+            - name: connection-seed
+              mountPath: /seed
+      containers:
+        - name: hawk-scanner
+          image: {{ .Values.scanner.image }}
+          command: ["tail", "-f", "/dev/null"]
+          env:
+            - name: PYTHONIOENCODING
+              value: "utf-8"
+            - name: LANG
+              value: "C.UTF-8"
+            - name: LC_ALL
+              value: "C.UTF-8"
+          envFrom:
+            - secretRef:
+                name: poirot-secret
+          volumeMounts:
+            - name: poirot-config
+              mountPath: /app/connection.yml
+              subPath: connection.yml
+            - name: poirot-config
+              mountPath: /app/.env
+              subPath: .env
+            - name: fingerprint
+              mountPath: /app/fingerprint.yml
+              subPath: fingerprint.yml
+            - name: scripts
+              mountPath: /app/notification_manager.py
+              subPath: notification_manager.py
+            - name: poirot-data
+              mountPath: /app/data
+          resources:
+            requests:
+              memory: {{ .Values.scanner.resources.requests.memory | quote }}
+              cpu: {{ .Values.scanner.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.scanner.resources.limits.memory | quote }}
+              cpu: {{ .Values.scanner.resources.limits.cpu | quote }}
+      volumes:
+        - name: poirot-data
+          persistentVolumeClaim:
+            claimName: poirot-data
+        - name: poirot-config
+          persistentVolumeClaim:
+            claimName: poirot-config
+        - name: connection-seed
+          configMap:
+            name: poirot-connection-seed
+        - name: fingerprint
+          configMap:
+            name: poirot-fingerprint
+        - name: scripts
+          configMap:
+            name: poirot-scripts

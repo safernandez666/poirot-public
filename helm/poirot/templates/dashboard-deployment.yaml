@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    app: dashboard
+    {{- include "poirot.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.dashboard.replicas }}
+  selector:
+    matchLabels:
+      app: dashboard
+  template:
+    metadata:
+      labels:
+        app: dashboard
+    spec:
+      serviceAccountName: dashboard
+      initContainers:
+        - name: init-config
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /config/connection.yml ]; then
+                echo "Seeding connection.yml..."
+                cp /seed/connection.yml /config/connection.yml
+              fi
+              if [ ! -f /config/.env ]; then
+                echo "Seeding .env..."
+                env | grep -E "^(SLACK_|SMTP_|THEHIVE_|OLLAMA_|SOURCE_)" \
+                  | awk -F= 'BEGIN{OFS="="} {val=substr($0,index($0,"=")+1); print $1, val}' \
+                  > /config/.env
+              fi
+          envFrom:
+            - secretRef:
+                name: poirot-secret
+          volumeMounts:
+            - name: poirot-config
+              mountPath: /config
+            - name: connection-seed
+              mountPath: /seed
+      containers:
+        - name: dashboard
+          image: {{ .Values.dashboard.image }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: ALERTS_DB_PATH
+              value: /app/data/alerts.db
+            - name: FINGERPRINT_PATH
+              value: /app/config/fingerprint.yml
+            - name: CONNECTION_PATH
+              value: /app/config/connection.yml
+            - name: FLASK_DEBUG
+              value: "false"
+            - name: THEHIVE_URL
+              value: {{ .Values.notifications.thehive.url | quote }}
+            - name: AUTH_ENABLED
+              valueFrom:
+                secretKeyRef:
+                  name: poirot-secret
+                  key: AUTH_ENABLED
+            - name: KEYCLOAK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: poirot-secret
+                  key: KEYCLOAK_URL
+            - name: KEYCLOAK_REALM
+              valueFrom:
+                secretKeyRef:
+                  name: poirot-secret
+                  key: KEYCLOAK_REALM
+            - name: KEYCLOAK_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: poirot-secret
+                  key: KEYCLOAK_CLIENT_ID
+          envFrom:
+            - secretRef:
+                name: poirot-secret
+          volumeMounts:
+            - name: poirot-data
+              mountPath: /app/data
+            - name: poirot-config
+              mountPath: /app/config/connection.yml
+              subPath: connection.yml
+            - name: poirot-config
+              mountPath: /app/.env
+              subPath: .env
+            - name: fingerprint
+              mountPath: /app/config/fingerprint.yml
+              subPath: fingerprint.yml
+            - name: scripts
+              mountPath: /app/notification_manager.py
+              subPath: notification_manager.py
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 80
+            initialDelaySeconds: {{ .Values.dashboard.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.dashboard.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.dashboard.livenessProbe.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 80
+            initialDelaySeconds: {{ .Values.dashboard.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.dashboard.readinessProbe.periodSeconds }}
+          resources:
+            requests:
+              memory: {{ .Values.dashboard.resources.requests.memory | quote }}
+              cpu: {{ .Values.dashboard.resources.requests.cpu | quote }}
+            limits:
+              memory: {{ .Values.dashboard.resources.limits.memory | quote }}
+              cpu: {{ .Values.dashboard.resources.limits.cpu | quote }}
+      volumes:
+        - name: poirot-data
+          persistentVolumeClaim:
+            claimName: poirot-data
+        - name: poirot-config
+          persistentVolumeClaim:
+            claimName: poirot-config
+        - name: connection-seed
+          configMap:
+            name: poirot-connection-seed
+        - name: fingerprint
+          configMap:
+            name: poirot-fingerprint
+        - name: scripts
+          configMap:
+            name: poirot-scripts
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  namespace: {{ include "poirot.namespace" . }}
+  labels:
+    app: dashboard
+    {{- include "poirot.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: dashboard
+  type: {{ .Values.dashboard.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.dashboard.service.port }}
+      targetPort: 80
+      {{- if eq .Values.dashboard.service.type "NodePort" }}
+      nodePort: {{ .Values.dashboard.service.nodePort }}
+      {{- end }}

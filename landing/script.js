@@ -15,9 +15,10 @@
   
   if (navToggle && navMenu) {
     navToggle.addEventListener('click', function() {
-      navMenu.classList.toggle('active');
+      const isExpanded = navMenu.classList.toggle('active');
       navToggle.classList.toggle('active');
       document.body.classList.toggle('nav-open');
+      navToggle.setAttribute('aria-expanded', isExpanded);
     });
     
     // Close menu when clicking a link
@@ -65,11 +66,19 @@
     '.integration-card, .deploy-card, .comparison-container, .comparison-stats'
   );
   
+  // Check for reduced motion preference
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
+        if (prefersReducedMotion) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'none';
+        } else {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
         revealObserver.unobserve(entry.target);
       }
     });
@@ -80,8 +89,13 @@
   
   revealElements.forEach((el, index) => {
     el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
-    el.style.transition = `opacity 0.6s ease ${index * 0.05}s, transform 0.6s ease ${index * 0.05}s`;
+    if (prefersReducedMotion) {
+      el.style.transform = 'none';
+      el.style.transition = 'opacity 0.3s ease';
+    } else {
+      el.style.transform = 'translateY(30px)';
+      el.style.transition = `opacity 0.6s ease ${index * 0.05}s, transform 0.6s ease ${index * 0.05}s`;
+    }
     revealObserver.observe(el);
   });
 
@@ -138,9 +152,14 @@
   const alertCards = document.querySelectorAll('.alert-card');
   
   alertCards.forEach((card, index) => {
-    card.style.opacity = '0';
-    card.style.transform = 'translateX(-20px)';
-    card.style.transition = `opacity 0.5s ease ${index * 0.2}s, transform 0.5s ease ${index * 0.2}s`;
+    if (prefersReducedMotion) {
+      card.style.opacity = '1';
+      card.style.transform = 'none';
+    } else {
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-20px)';
+      card.style.transition = `opacity 0.5s ease ${index * 0.2}s, transform 0.5s ease ${index * 0.2}s`;
+    }
   });
   
   const dashboardObserver = new IntersectionObserver((entries) => {
@@ -167,9 +186,14 @@
   const patternTags = document.querySelectorAll('.pattern-tag');
   
   patternTags.forEach((tag, index) => {
-    tag.style.opacity = '0';
-    tag.style.transform = 'scale(0.8)';
-    tag.style.transition = `opacity 0.4s ease ${index * 0.03}s, transform 0.4s ease ${index * 0.03}s`;
+    if (prefersReducedMotion) {
+      tag.style.opacity = '1';
+      tag.style.transform = 'none';
+    } else {
+      tag.style.opacity = '0';
+      tag.style.transform = 'scale(0.8)';
+      tag.style.transition = `opacity 0.4s ease ${index * 0.03}s, transform 0.4s ease ${index * 0.03}s`;
+    }
   });
   
   const patternsObserver = new IntersectionObserver((entries) => {
@@ -339,5 +363,6 @@
   `;
   document.head.appendChild(mobileMenuStyles);
 
-  console.log('🎩 Poirot Landing Page - Ready');
+  // Remove console.log in production
+  // console.log('🎩 Poirot Landing Page - Ready');
 })();
