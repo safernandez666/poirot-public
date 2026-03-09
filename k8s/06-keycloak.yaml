@@ -72,6 +72,14 @@ spec:
               mountPath: /opt/keycloak/themes/poirot/login/resources/css/login.css
               subPath: login.css
               readOnly: true
+            - name: theme-login-css
+              mountPath: /opt/keycloak/themes/poirot/login/theme.properties
+              subPath: theme.properties
+              readOnly: true
+            - name: theme-login-css
+              mountPath: /opt/keycloak/themes/poirot/login/resources/js/login.js
+              subPath: login.js
+              readOnly: true
             - name: keycloak-data
               mountPath: /opt/keycloak/data
           livenessProbe:

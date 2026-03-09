@@ -30,6 +30,8 @@ configMapGenerator:
   - name: poirot-keycloak-theme
     files:
       - login.css=files/login.css
+      - theme.properties=files/theme.properties
+      - login.js=files/login.js
 
 generatorOptions:
   disableNameSuffixHash: true
