@@ -10,6 +10,7 @@ resources:
   - 03-hawk-scanner.yaml
   - 04-dashboard.yaml
   - 05-rbac.yaml
+  - 06-keycloak.yaml
 
 # Generates ConfigMaps directly from the source files in this repo.
 # Run:  kubectl apply -k k8s/
@@ -23,6 +24,12 @@ configMapGenerator:
   - name: poirot-scripts
     files:
       - notification_manager.py=files/notification_manager.py
+  - name: poirot-keycloak-realm
+    files:
+      - poirot-realm.json=files/poirot-realm.json
+  - name: poirot-keycloak-theme
+    files:
+      - login.css=files/login.css
 
 generatorOptions:
   disableNameSuffixHash: true
