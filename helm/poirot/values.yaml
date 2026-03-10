@@ -124,7 +124,7 @@ ai:
     model: "llama3.2:3b"
   openrouter:
     apiKey: ""
-    model: "openrouter/auto"
+    model: "openrouter/free"
 
 # -- Data Sources (JSON-encoded — uncomment and fill in values.yaml or use --set)
 # Format: SOURCE_<TYPE>_<NAME>: '<JSON>'
