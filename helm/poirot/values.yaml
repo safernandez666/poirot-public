@@ -5,7 +5,7 @@ namespace: poirot
 
 # -- Dashboard (Flask API + Next.js frontend served by nginx)
 dashboard:
-  image: ghcr.io/safernandez666/poirot-dashboard:latest
+  image: safernandez666/poirot-dashboard:latest
   replicas: 1
   service:
     type: NodePort
@@ -28,7 +28,7 @@ dashboard:
 
 # -- Hawk Scanner (kept alive for ad-hoc kubectl exec scans)
 scanner:
-  image: ghcr.io/safernandez666/poirot-scanner:latest
+  image: safernandez666/poirot-scanner:latest
   replicas: 1
   resources:
     requests:

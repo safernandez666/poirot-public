@@ -45,7 +45,7 @@ spec:
               mountPath: /seed
       containers:
         - name: hawk-scanner
-          image: ghcr.io/safernandez666/poirot-scanner:latest
+          image: safernandez666/poirot-scanner:latest
           command: ["tail", "-f", "/dev/null"]   # kept alive for kubectl exec
           env:
             - name: PYTHONIOENCODING

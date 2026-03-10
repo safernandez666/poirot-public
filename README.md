@@ -36,7 +36,7 @@ There are multiple ways to run Poirot depending on your use case.
 
 > **Already have Poirot images from a previous install?** Make sure you're running the latest version. Docker won't pull new images if it already has a `latest` tag cached locally. Run this first:
 > ```bash
-> docker rmi ghcr.io/safernandez666/poirot-scanner:latest ghcr.io/safernandez666/poirot-dashboard:latest 2>/dev/null
+> docker rmi safernandez666/poirot-scanner:latest safernandez666/poirot-dashboard:latest 2>/dev/null
 > ```
 > Then `docker compose up -d` will pull the newest images automatically.
 
@@ -247,9 +247,9 @@ To disable authentication, set `AUTH_ENABLED=false` in `.env`.
 
 | Container | Image | Description |
 |-----------|-------|-------------|
-| `poirot-init` | `ghcr.io/safernandez666/poirot-scanner` | Extracts default config files on first run, then exits |
-| `hawk-scanner` | `ghcr.io/safernandez666/poirot-scanner` | The scanning engine |
-| `hawk-dashboard` | `ghcr.io/safernandez666/poirot-dashboard` | Web UI + API on port **8080** |
+| `poirot-init` | `safernandez666/poirot-scanner` | Extracts default config files on first run, then exits |
+| `hawk-scanner` | `safernandez666/poirot-scanner` | The scanning engine |
+| `hawk-dashboard` | `safernandez666/poirot-dashboard` | Web UI + API on port **8080** |
 | `keycloak` | `quay.io/keycloak/keycloak:26.1` | Identity provider (login, RBAC, social login) on port **8180** |
 
 ### `docker compose --profile demo up -d` (core + demo data)
@@ -316,7 +316,7 @@ When new images are published, update your deployment:
 docker compose down
 
 # Remove old Poirot images to force pulling the latest
-docker rmi ghcr.io/safernandez666/poirot-scanner:latest ghcr.io/safernandez666/poirot-dashboard:latest
+docker rmi safernandez666/poirot-scanner:latest safernandez666/poirot-dashboard:latest
 
 # Start again (pulls new images automatically)
 docker compose up -d
@@ -325,7 +325,7 @@ docker compose up -d
 Or use the one-liner:
 
 ```bash
-docker compose down && docker rmi ghcr.io/safernandez666/poirot-scanner:latest ghcr.io/safernandez666/poirot-dashboard:latest 2>/dev/null; docker compose up -d
+docker compose down && docker rmi safernandez666/poirot-scanner:latest safernandez666/poirot-dashboard:latest 2>/dev/null; docker compose up -d
 ```
 
 To pin a specific version instead of `latest`:
@@ -338,7 +338,7 @@ POIROT_TAG=<commit-sha> docker compose up -d
 
 ```bash
 docker compose --profile demo --profile oracle --profile thehive --profile ollama down -v --remove-orphans
-docker rmi ghcr.io/safernandez666/poirot-scanner:latest ghcr.io/safernandez666/poirot-dashboard:latest 2>/dev/null
+docker rmi safernandez666/poirot-scanner:latest safernandez666/poirot-dashboard:latest 2>/dev/null
 ```
 
 This removes all containers, volumes (alerts, scan history, Keycloak users), and cached images.
@@ -422,5 +422,5 @@ Each AI-reviewed finding includes an `ai_review` field with the verdict and reas
 
 | Image | Registry |
 |---|---|
-| Scanner | `ghcr.io/safernandez666/poirot-scanner:latest` |
-| Dashboard | `ghcr.io/safernandez666/poirot-dashboard:latest` |
+| Scanner | `safernandez666/poirot-scanner:latest` |
+| Dashboard | `safernandez666/poirot-dashboard:latest` |

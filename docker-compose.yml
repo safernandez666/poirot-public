@@ -1,5 +1,5 @@
 # =============================================================================
-# Poirot DSPM — docker compose (pre-built images from GHCR)
+# Poirot DSPM — docker compose (pre-built images from Docker Hub)
 #
 # Usage:
 #   cp .env.example .env
@@ -18,7 +18,7 @@ services:
 
   # Extracts default config files from the image on first run.
   init:
-    image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
+    image: safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: poirot-init
     user: root
     volumes:
@@ -69,7 +69,7 @@ services:
     restart: unless-stopped
 
   scanner:
-    image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
+    image: safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: hawk-scanner
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -93,7 +93,7 @@ services:
       - hawk-network
 
   dashboard:
-    image: ghcr.io/safernandez666/poirot-dashboard:${POIROT_TAG:-latest}
+    image: safernandez666/poirot-dashboard:${POIROT_TAG:-latest}
     container_name: hawk-dashboard
     security_opt:
       - no-new-privileges:false
@@ -213,7 +213,7 @@ services:
       start_period: 30s
 
   demo-setup:
-    image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
+    image: safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: demo-setup
     profiles: ["demo"]
     depends_on:
@@ -266,7 +266,7 @@ services:
       start_period: 120s
 
   oracle-setup:
-    image: ghcr.io/safernandez666/poirot-scanner:${POIROT_TAG:-latest}
+    image: safernandez666/poirot-scanner:${POIROT_TAG:-latest}
     container_name: oracle-setup
     profiles: ["oracle"]
     platform: linux/amd64

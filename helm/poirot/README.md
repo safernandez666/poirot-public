@@ -6,8 +6,8 @@ Deploy Poirot DSPM on Kubernetes using Helm.
 
 | Component | Image | Description |
 |-----------|-------|-------------|
-| Dashboard | `ghcr.io/safernandez666/poirot-dashboard:latest` | Flask API + Next.js frontend (nginx) |
-| Scanner | `ghcr.io/safernandez666/poirot-scanner:latest` | Hawk scanner (kept alive for ad-hoc `kubectl exec`) |
+| Dashboard | `safernandez666/poirot-dashboard:latest` | Flask API + Next.js frontend (nginx) |
+| Scanner | `safernandez666/poirot-scanner:latest` | Hawk scanner (kept alive for ad-hoc `kubectl exec`) |
 | Keycloak | `quay.io/keycloak/keycloak:26.1` | IAM / SSO (optional, enabled by default) |
 
 > **Note:** In Kubernetes, the dashboard runs scans via local subprocess (scanner code is bundled in the dashboard image). The `KUBERNETES_SERVICE_HOST` env var is auto-detected. The standalone scanner pod is for manual ad-hoc scans only.
@@ -103,8 +103,8 @@ kubectl delete namespace poirot
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `dashboard.image` | `ghcr.io/safernandez666/poirot-dashboard:latest` | Dashboard image |
-| `scanner.image` | `ghcr.io/safernandez666/poirot-scanner:latest` | Scanner image |
+| `dashboard.image` | `safernandez666/poirot-dashboard:latest` | Dashboard image |
+| `scanner.image` | `safernandez666/poirot-scanner:latest` | Scanner image |
 | `keycloak.enabled` | `true` | Deploy Keycloak |
 | `auth.enabled` | `"true"` | Require authentication |
 | `dashboard.service.type` | `NodePort` | Service type |

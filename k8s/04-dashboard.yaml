@@ -68,7 +68,7 @@ spec:
               mountPath: /seed
       containers:
         - name: dashboard
-          image: ghcr.io/safernandez666/poirot-dashboard:latest
+          image: safernandez666/poirot-dashboard:latest
           ports:
             - containerPort: 80
           env:

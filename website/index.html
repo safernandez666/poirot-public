@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poirot Security — Automated Data Security</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #111118;
+            --bg-card: #16161f;
+            --bg-card-hover: #1c1c27;
+            --border-color: #232330;
+            --border-hover: #2a2a3a;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-cyan: #22d3ee;
+            --accent-cyan-glow: rgba(34, 211, 238, 0.15);
+            --accent-purple: #a855f7;
+            --accent-blue: #3b82f6;
+            --severity-critical: #ef4444;
+            --severity-high: #f97316;
+            --severity-medium: #eab308;
+            --severity-low: #22c55e;
+            --gradient-1: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+            --gradient-2: linear-gradient(135deg, #a855f7 0%, #22d3ee 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Background Grid Effect */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-cyan-glow) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow-2 {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%);
+            bottom: -100px;
+            left: -100px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .logo-text span {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 0.875rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-cta {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 30px rgba(34, 211, 238, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            z-index: 1;
+            padding: 10rem 2rem 6rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--accent-cyan);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-cyan);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span {
+            background: var(--gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .hero-cta .btn-primary {
+            padding: 0.875rem 1.75rem;
+            font-size: 1rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+        }
+
+        .dashboard-preview {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(34, 211, 238, 0.1);
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #eab308; }
+        .dot-green { background: #22c55e; }
+
+        .dashboard-content {
+            padding: 1.5rem;
+        }
+
+        .preview-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .preview-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .preview-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .preview-icon.alert { background: rgba(239, 68, 68, 0.15); color: var(--severity-critical); }
+        .preview-icon.critical { background: rgba(249, 115, 22, 0.15); color: var(--severity-high); }
+        .preview-icon.source { background: rgba(34, 211, 238, 0.15); color: var(--accent-cyan); }
+        .preview-icon.clock { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+
+        .preview-card-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .preview-card-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .preview-chart {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .donut-chart {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--severity-critical) 0deg 50deg,
+                var(--severity-high) 50deg 140deg,
+                var(--severity-medium) 140deg 240deg,
+                var(--severity-low) 240deg 300deg,
+                var(--bg-card) 300deg 360deg
+            );
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .donut-chart::before {
+            content: '';
+            width: 80px;
+            height: 80px;
+            background: var(--bg-secondary);
+            border-radius: 50%;
+        }
+
+        .donut-center {
+            position: absolute;
+            text-align: center;
+        }
+
+        .donut-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--severity-medium);
+        }
+
+        .donut-label {
+            font-size: 0.625rem;
+            color: var(--text-muted);
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        .legend-dot.critical { background: var(--severity-critical); }
+        .legend-dot.high { background: var(--severity-high); }
+        .legend-dot.medium { background: var(--severity-medium); }
+        .legend-dot.low { background: var(--severity-low); }
+
+        /* Data Flow Animation Section */
+        .data-flow {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .data-flow-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .data-flow .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .data-flow .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .data-flow .section-header p {
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Animation Container */
+        .flow-animation {
+            position: relative;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Data Sources (Left) */
+        .flow-sources {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .flow-source {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            animation: pulse-source 2s ease-in-out infinite;
+        }
+
+        .flow-source:nth-child(1) { animation-delay: 0s; }
+        .flow-source:nth-child(2) { animation-delay: 0.5s; }
+        .flow-source:nth-child(3) { animation-delay: 1s; }
+        .flow-source:nth-child(4) { animation-delay: 1.5s; }
+
+        @keyframes pulse-source {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+                border-color: var(--border-color);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+                border-color: var(--accent-cyan);
+            }
+        }
+
+        .flow-source-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+        }
+
+        .flow-source-icon.mysql { background: rgba(34, 211, 238, 0.1); }
+        .flow-source-icon.s3 { background: rgba(59, 130, 246, 0.1); }
+        .flow-source-icon.kafka { background: rgba(168, 85, 247, 0.1); }
+        .flow-source-icon.oracle { background: rgba(249, 115, 22, 0.1); }
+
+        /* Data Packets Animation */
+        .data-packets {
+            position: absolute;
+            left: 180px;
+            top: 0;
+            bottom: 0;
+            width: 200px;
+        }
+
+        .packet {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 10px var(--accent-cyan), 0 0 20px var(--accent-cyan);
+            opacity: 0;
+        }
+
+        .packet:nth-child(1) { 
+            animation: flow-to-poirot 3s linear infinite;
+            top: 15%;
+        }
+        .packet:nth-child(2) { 
+            animation: flow-to-poirot 3s linear infinite 0.5s;
+            top: 35%;
+            background: var(--accent-purple);
+            box-shadow: 0 0 10px var(--accent-purple), 0 0 20px var(--accent-purple);
+        }
+        .packet:nth-child(3) { 
+            animation: flow-to-poirot 3s linear infinite 1s;
+            top: 55%;
+            background: var(--accent-blue);
+            box-shadow: 0 0 10px var(--accent-blue), 0 0 20px var(--accent-blue);
+        }
+        .packet:nth-child(4) { 
+            animation: flow-to-poirot 3s linear infinite 1.5s;
+            top: 75%;
+            background: var(--severity-high);
+            box-shadow: 0 0 10px var(--severity-high), 0 0 20px var(--severity-high);
+        }
+        .packet:nth-child(5) { 
+            animation: flow-to-poirot 3s linear infinite 2s;
+            top: 25%;
+        }
+        .packet:nth-child(6) { 
+            animation: flow-to-poirot 3s linear infinite 2.5s;
+            top: 65%;
+            background: var(--accent-purple);
+            box-shadow: 0 0 10px var(--accent-purple), 0 0 20px var(--accent-purple);
+        }
+
+        @keyframes flow-to-poirot {
+            0% {
+                left: 0;
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            90% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                left: 100%;
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        /* Poirot Engine (Center) */
+        .poirot-engine {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 240px;
+            height: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .engine-core {
+            width: 140px;
+            height: 140px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: engine-pulse 2s ease-in-out infinite;
+        }
+
+        .engine-rings {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border: 2px solid rgba(34, 211, 238, 0.4);
+            border-radius: 50%;
+            animation: ring-expand 2s ease-out infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .engine-rings:nth-child(2) {
+            width: 140px;
+            height: 140px;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes ring-expand {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes engine-pulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.3);
+                border-color: var(--accent-cyan);
+            }
+            50% { 
+                box-shadow: 0 0 60px rgba(34, 211, 238, 0.4);
+                border-color: var(--accent-cyan);
+            }
+        }
+
+        .engine-inner {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .engine-rings {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 50%;
+            animation: ring-expand 2s ease-out infinite;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .engine-rings:nth-child(2) {
+            width: 220px;
+            height: 220px;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes ring-expand {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        .engine-label {
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Alert Packets (Output) */
+        .alert-packets {
+            position: absolute;
+            right: 180px;
+            top: 0;
+            bottom: 0;
+            width: 200px;
+        }
+
+        .alert-packet {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .alert-packet.critical { 
+            background: var(--severity-critical);
+            box-shadow: 0 0 10px var(--severity-critical), 0 0 20px var(--severity-critical);
+            animation: flow-to-alerts 2.5s linear infinite;
+            top: 20%;
+        }
+        .alert-packet.high { 
+            background: var(--severity-high);
+            box-shadow: 0 0 10px var(--severity-high), 0 0 20px var(--severity-high);
+            animation: flow-to-alerts 2.5s linear infinite 0.4s;
+            top: 40%;
+        }
+        .alert-packet.medium { 
+            background: var(--severity-medium);
+            box-shadow: 0 0 10px var(--severity-medium), 0 0 20px var(--severity-medium);
+            animation: flow-to-alerts 2.5s linear infinite 0.8s;
+            top: 60%;
+        }
+        .alert-packet.low { 
+            background: var(--severity-low);
+            box-shadow: 0 0 10px var(--severity-low), 0 0 20px var(--severity-low);
+            animation: flow-to-alerts 2.5s linear infinite 1.2s;
+            top: 80%;
+        }
+        .alert-packet.critical:nth-child(5) { 
+            animation-delay: 1.6s;
+            top: 30%;
+        }
+
+        @keyframes flow-to-alerts {
+            0% {
+                right: 0;
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            90% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                right: 100%;
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+
+        /* Alert Channels (Right) */
+        .flow-alerts {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .flow-alert {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            animation: pulse-alert 2s ease-in-out infinite;
+        }
+
+        .flow-alert:nth-child(1) { 
+            animation-delay: 0.2s;
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+        .flow-alert:nth-child(2) { 
+            animation-delay: 0.6s;
+            border-color: rgba(249, 115, 22, 0.5);
+        }
+        .flow-alert:nth-child(3) { 
+            animation-delay: 1s;
+            border-color: rgba(34, 211, 238, 0.5);
+        }
+        .flow-alert:nth-child(4) { 
+            animation-delay: 1.4s;
+            border-color: rgba(168, 85, 247, 0.5);
+        }
+
+        @keyframes pulse-alert {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+            }
+        }
+
+        .flow-alert-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+        }
+
+        .flow-alert-icon.slack { background: rgba(239, 68, 68, 0.1); color: var(--severity-critical); }
+        .flow-alert-icon.email { background: rgba(249, 115, 22, 0.1); color: var(--severity-high); }
+        .flow-alert-icon.teams { background: rgba(34, 211, 238, 0.1); color: var(--accent-cyan); }
+        .flow-alert-icon.webhook { background: rgba(168, 85, 247, 0.1); color: var(--accent-purple); }
+
+        /* Flow Labels */
+        .flow-label {
+            position: absolute;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+
+        .flow-label.input {
+            left: 60px;
+            top: 10%;
+        }
+
+        .flow-label.process {
+            left: 50%;
+            transform: translateX(-50%);
+            top: 10%;
+            color: var(--accent-cyan);
+        }
+
+        .flow-label.output {
+            right: 60px;
+            top: 10%;
+        }
+
+        /* Pattern Badges */
+        .pattern-badges {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pattern-badge {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.375rem 0.875rem;
+            font-size: 0.625rem;
+            font-family: monospace;
+            color: var(--text-secondary);
+            animation: badge-pulse 1.5s ease-in-out infinite;
+        }
+
+        .pattern-badge:nth-child(1) { animation-delay: 0s; color: var(--severity-critical); border-color: rgba(239, 68, 68, 0.3); }
+        .pattern-badge:nth-child(2) { animation-delay: 0.2s; color: var(--severity-high); border-color: rgba(249, 115, 22, 0.3); }
+        .pattern-badge:nth-child(3) { animation-delay: 0.4s; color: var(--severity-medium); border-color: rgba(234, 179, 8, 0.3); }
+        .pattern-badge:nth-child(4) { animation-delay: 0.6s; color: var(--accent-cyan); border-color: rgba(34, 211, 238, 0.3); }
+        .pattern-badge:nth-child(5) { animation-delay: 0.8s; color: var(--accent-purple); border-color: rgba(168, 85, 247, 0.3); }
+
+        @keyframes badge-pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Features Section */
+        .features {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            font-size: 1.25rem;
+        }
+
+        .feature-icon.scan { background: rgba(34, 211, 238, 0.1); color: var(--accent-cyan); }
+        .feature-icon.detect { background: rgba(239, 68, 68, 0.1); color: var(--severity-critical); }
+        .feature-icon.alert { background: rgba(249, 115, 22, 0.1); color: var(--severity-high); }
+        .feature-icon.report { background: rgba(168, 85, 247, 0.1); color: var(--accent-purple); }
+        .feature-icon.integrate { background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); }
+        .feature-icon.ai { background: rgba(34, 197, 94, 0.1); color: var(--severity-low); }
+
+        .feature-card h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Data Sources Section */
+        .sources {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sources-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .source-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .source-card:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.1);
+        }
+
+        .source-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .source-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .source-card p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* How It Works */
+        .how-it-works {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            position: relative;
+            padding: 2rem;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .step h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .step p {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        /* Consultancy Section */
+        .consultancy {
+            position: relative;
+            z-index: 1;
+            padding: 4rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .consultancy-card {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(34, 211, 238, 0.1) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 20px;
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 3rem;
+        }
+
+        .consultancy-content h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .consultancy-content p {
+            color: var(--text-secondary);
+            max-width: 500px;
+        }
+
+        .consultancy-cta {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .consultancy-email {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        .consultancy-email:hover {
+            text-decoration: underline;
+        }
+
+        /* CTA Section */
+        .cta {
+            position: relative;
+            z-index: 1;
+            padding: 6rem 2rem;
+        }
+
+        .cta-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--gradient-1);
+            border-radius: 24px;
+            padding: 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(168,85,247,0.2) 0%, transparent 50%);
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .cta p {
+            font-size: 1.125rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta .btn {
+            background: white;
+            color: var(--bg-primary);
+            font-weight: 600;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+
+        .cta .btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        /* GitHub Banner */
+        .github-banner {
+            position: relative;
+            z-index: 1;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+        }
+
+        .github-banner-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .github-banner svg {
+            width: 24px;
+            height: 24px;
+            color: var(--text-primary);
+        }
+
+        .github-banner p {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .github-banner a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .github-banner a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            padding: 4rem 2rem 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+            margin-bottom: 4rem;
+        }
+
+        .footer-brand p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            max-width: 300px;
+        }
+
+        .footer-links h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-bottom p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .footer-social a {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .footer-social a:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-cta {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                order: -1;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sources-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .flow-animation {
+                height: 500px;
+            }
+
+            .flow-sources, .flow-alerts {
+                position: relative;
+                left: auto;
+                right: auto;
+                top: auto;
+                transform: none;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .data-packets, .alert-packets {
+                display: none;
+            }
+
+            .poirot-engine {
+                position: relative;
+                left: auto;
+                top: auto;
+                transform: none;
+                margin: 2rem 0;
+            }
+
+            .consultancy-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .consultancy-cta {
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .features-grid,
+            .sources-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .cta-container {
+                padding: 2rem;
+            }
+
+            .cta h2 {
+                font-size: 1.75rem;
+            }
+
+            .flow-sources, .flow-alerts {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">P</div>
+                <div class="logo-text">Poirot <span>Security</span></div>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#sources">Data Sources</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="https://github.com/safernandez666/poirot-public">GitHub</a></li>
+            </ul>
+            <div class="nav-cta">
+                <a href="http://localhost:8080" class="btn btn-secondary">Dashboard</a>
+                <a href="https://github.com/safernandez666/poirot-public" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- GitHub Banner -->
+    <div class="github-banner">
+        <div class="github-banner-container">
+            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            <p><strong>Open Source on GitHub</strong> — Public version available at <a href="https://github.com/safernandez666/poirot-public">github.com/safernandez666/poirot-public</a></p>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">Now with AI-Powered Reports</div>
+            <h1>Automated Detection of <span>Sensitive Data</span></h1>
+            <p>Discover, classify, and protect PII/PCI across your entire data landscape — MySQL, Oracle, S3, Kafka, and more. All from a single dashboard.</p>
+            <div class="hero-cta">
+                <a href="https://github.com/safernandez666/poirot-public" class="btn btn-primary">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    Start on GitHub
+                </a>
+                <a href="http://localhost:8080" class="btn btn-secondary">View Demo</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value">50+</span>
+                    <span class="stat-label">Data Patterns</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">4</span>
+                    <span class="stat-label">Data Sources</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">5</span>
+                    <span class="stat-label">Alert Channels</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="dashboard-preview">
+                <div class="dashboard-header">
+                    <div class="dot dot-red"></div>
+                    <div class="dot dot-yellow"></div>
+                    <div class="dot dot-green"></div>
+                </div>
+                <div class="dashboard-content">
+                    <div class="preview-cards">
+                        <div class="preview-card">
+                            <div class="preview-card-header">
+                                <div class="preview-icon alert">⚠</div>
+                                <div>
+                                    <div class="preview-card-title">Total Alerts</div>
+                                    <div class="preview-card-value">13</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="preview-card-header">
+                                <div class="preview-icon critical">⚡</div>
+                                <div>
+                                    <div class="preview-card-title">Critical</div>
+                                    <div class="preview-card-value">2</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="preview-card-header">
+                                <div class="preview-icon source">🗄</div>
+                                <div>
+                                    <div class="preview-card-title">Sources</div>
+                                    <div class="preview-card-value">1</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="preview-card-header">
+                                <div class="preview-icon clock">◷</div>
+                                <div>
+                                    <div class="preview-card-title">Reopened</div>
+                                    <div class="preview-card-value">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="preview-chart">
+                        <div class="donut-chart">
+                            <div class="donut-center">
+                                <div class="donut-value">13</div>
+                                <div class="donut-label">Total Alerts</div>
+                            </div>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item"><div class="legend-dot critical"></div> Critical (2)</div>
+                            <div class="legend-item"><div class="legend-dot high"></div> High (4)</div>
+                            <div class="legend-item"><div class="legend-dot medium"></div> Medium (6)</div>
+                            <div class="legend-item"><div class="legend-dot low"></div> Low (1)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Flow Animation Section -->
+    <section class="data-flow" id="data-flow">
+        <div class="data-flow-container">
+            <div class="section-header">
+                <h2>See How <span style="color: var(--accent-cyan);">Poirot Works</span></h2>
+                <p>Data flows from your sources, gets analyzed with 50+ detection patterns, and triggers instant alerts.</p>
+            </div>
+            
+            <div class="flow-animation">
+                <!-- Input Label -->
+                <div class="flow-label input">Data Sources</div>
+                
+                <!-- Data Sources (Left) -->
+                <div class="flow-sources">
+                    <div class="flow-source">
+                        <div class="flow-source-icon mysql">🐬</div>
+                        <span>MySQL</span>
+                    </div>
+                    <div class="flow-source">
+                        <div class="flow-source-icon s3">☁</div>
+                        <span>Amazon S3</span>
+                    </div>
+                    <div class="flow-source">
+                        <div class="flow-source-icon kafka">⚡</div>
+                        <span>Kafka</span>
+                    </div>
+                    <div class="flow-source">
+                        <div class="flow-source-icon oracle">🗄</div>
+                        <span>Oracle</span>
+                    </div>
+                </div>
+
+                <!-- Data Packets Flowing In -->
+                <div class="data-packets">
+                    <div class="packet"></div>
+                    <div class="packet"></div>
+                    <div class="packet"></div>
+                    <div class="packet"></div>
+                    <div class="packet"></div>
+                    <div class="packet"></div>
+                </div>
+
+                <!-- Processing Label -->
+                <div class="flow-label process">Regex Engine</div>
+
+                <!-- Poirot Engine (Center) -->
+                <div class="poirot-engine">
+                    <div class="engine-core">
+                        <div class="engine-rings"></div>
+                        <div class="engine-rings"></div>
+                        <div class="engine-inner">P</div>
+                    </div>
+                    <div class="engine-label">Poirot Engine</div>
+                </div>
+
+                <!-- Alert Packets Flowing Out -->
+                <div class="alert-packets">
+                    <div class="alert-packet critical"></div>
+                    <div class="alert-packet high"></div>
+                    <div class="alert-packet medium"></div>
+                    <div class="alert-packet low"></div>
+                    <div class="alert-packet critical"></div>
+                </div>
+
+                <!-- Output Label -->
+                <div class="flow-label output">Alert Channels</div>
+
+                <!-- Alert Channels (Right) -->
+                <div class="flow-alerts">
+                    <div class="flow-alert">
+                        <div class="flow-alert-icon slack">💬</div>
+                        <span>Slack</span>
+                    </div>
+                    <div class="flow-alert">
+                        <div class="flow-alert-icon email">✉</div>
+                        <span>Email</span>
+                    </div>
+                    <div class="flow-alert">
+                        <div class="flow-alert-icon teams">👥</div>
+                        <span>Teams</span>
+                    </div>
+                    <div class="flow-alert">
+                        <div class="flow-alert-icon webhook">⚡</div>
+                        <span>Webhook</span>
+                    </div>
+                </div>
+
+                <!-- Pattern Badges -->
+                <div class="pattern-badges">
+                    <span class="pattern-badge">\d{4}-\d{4}-\d{4}</span>
+                    <span class="pattern-badge">SSN: \d{3}-\d{2}-\d{4}</span>
+                    <span class="pattern-badge">AKIA[0-9A-Z]{16}</span>
+                    <span class="pattern-badge">[a-zA-Z0-9._%+-]+@</span>
+                    <span class="pattern-badge">-----BEGIN RSA</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <h2>Everything You Need for <span style="color: var(--accent-cyan);">Data Security</span></h2>
+            <p>Complete data security posture management with automated scanning, intelligent classification, and instant alerting.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon scan">🔍</div>
+                <h3>Automated Scanning</h3>
+                <p>Continuously scan MySQL, Oracle, S3, and Kafka for sensitive data without impacting performance.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon detect">🎯</div>
+                <h3>50+ Detection Patterns</h3>
+                <p>Built-in patterns for PII, PCI, credentials, API keys, and custom regex patterns you define.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon alert">🔔</div>
+                <h3>Multi-Channel Alerts</h3>
+                <p>Get notified via Slack, Email, Teams, or Webhooks the moment sensitive data is detected.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon report">📊</div>
+                <h3>AI-Powered Reports</h3>
+                <p>Generate comprehensive security reports with AI analysis and remediation recommendations.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon integrate">🔌</div>
+                <h3>TheHive Integration</h3>
+                <p>Automatically create security cases in TheHive for streamlined incident response.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon ai">🤖</div>
+                <h3>Smart Classification</h3>
+                <p>Machine learning-based data classification that improves accuracy over time.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Sources Section -->
+    <section class="sources" id="sources">
+        <div class="sources-container">
+            <div class="section-header">
+                <h2>Connect Your <span style="color: var(--accent-cyan);">Data Sources</span></h2>
+                <p>Support for all major databases, object storage, and streaming platforms.</p>
+            </div>
+            <div class="sources-grid">
+                <div class="source-card">
+                    <div class="source-icon">🐬</div>
+                    <h4>MySQL</h4>
+                    <p>MySQL 5.7+ & 8.0</p>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">🗄</div>
+                    <h4>Oracle</h4>
+                    <p>Oracle 12c+</p>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">☁</div>
+                    <h4>Amazon S3</h4>
+                    <p>Object Storage</p>
+                </div>
+                <div class="source-card">
+                    <div class="source-icon">⚡</div>
+                    <h4>Kafka</h4>
+                    <p>Streaming Data</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-header">
+            <h2>Get Started in <span style="color: var(--accent-cyan);">Minutes</span></h2>
+            <p>Simple setup, powerful results. Start protecting your data in three easy steps.</p>
+        </div>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Deploy Poirot</h3>
+                <p>Run with Docker Compose. No complex installation or configuration needed. The dashboard and scanner start automatically.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Connect Sources</h3>
+                <p>Add your data sources through the UI or environment variables. Support for credentials, IAM roles, and connection strings.</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Start Scanning</h3>
+                <p>Run your first scan and watch as Poirot discovers and classifies sensitive data across all your connected sources.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Consultancy Section -->
+    <section class="consultancy">
+        <div class="consultancy-card">
+            <div class="consultancy-content">
+                <h3>🚀 Need Professional Support?</h3>
+                <p>We offer consulting services for custom deployments, integrations, and enterprise support. From architecture design to custom pattern development — we've got you covered.</p>
+            </div>
+            <div class="consultancy-cta">
+                <a href="mailto:contact@poirot-dspm.com" class="consultancy-email">contact@poirot-dspm.com</a>
+                <a href="mailto:contact@poirot-dspm.com" class="btn btn-primary">Get in Touch</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="cta-container">
+            <div class="cta-content">
+                <h2>Ready to Secure Your Data?</h2>
+                <p>Join thousands of teams using Poirot to protect their sensitive data. Open source and free to use.</p>
+                <a href="https://github.com/safernandez666/poirot-public" class="btn">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    Get Started on GitHub
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <div class="logo-icon">P</div>
+                        <div class="logo-text">Poirot <span>Security</span></div>
+                    </a>
+                    <p>Automated detection of sensitive data across your data sources. Open source data security platform.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#sources">Data Sources</a></li>
+                        <li><a href="http://localhost:8080">Dashboard</a></li>
+                        <li><a href="mailto:contact@poirot-dspm.com">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/safernandez666/poirot-public">GitHub</a></li>
+                        <li><a href="https://github.com/safernandez666/poirot-public#readme">Documentation</a></li>
+                        <li><a href="https://github.com/safernandez666/poirot-public/releases">Changelog</a></li>
+                        <li><a href="https://github.com/safernandez666/poirot-public/issues">Issues</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/safernandez666/poirot-public/discussions">Discussions</a></li>
+                        <li><a href="mailto:contact@poirot-dspm.com">Consulting</a></li>
+                        <li><a href="https://github.com/safernandez666/poirot-public/blob/main/LICENSE">License</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 Poirot DSPM. Open source under MIT License. <a href="https://github.com/safernandez666/poirot-public" style="color: var(--accent-cyan); text-decoration: none;">github.com/safernandez666/poirot-public</a></p>
+                <div class="footer-social">
+                    <a href="https://github.com/safernandez666/poirot-public" aria-label="GitHub">
+                        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
